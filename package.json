@@ -1,0 +1,91 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "herdr",
+  "title": "Herdr Agents",
+  "description": "Inspect and control Herdr coding agents from Raycast.",
+  "icon": "icon.png",
+  "author": "kuroweb",
+  "categories": [
+    "Developer Tools",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "platforms": [
+    "macOS"
+  ],
+  "commands": [
+    {
+      "name": "agents",
+      "title": "Agents",
+      "description": "Herdrの稼働中agentを一覧し、focus・prompt送信・出力確認を行う。",
+      "mode": "view",
+      "keywords": [
+        "herdr",
+        "agent",
+        "claude",
+        "terminal",
+        "status"
+      ]
+    },
+    {
+      "name": "agent-status",
+      "title": "Agent Status",
+      "description": "稼働中agentの状態をメニューバーに常時表示する。",
+      "mode": "menu-bar",
+      "interval": "30s",
+      "keywords": [
+        "herdr",
+        "agent",
+        "status"
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "herdrPath",
+      "title": "Herdr Binary",
+      "description": "herdrコマンドの絶対パス。RaycastはログインシェルのPATHを継承しないため絶対パスが必要。",
+      "type": "textfield",
+      "required": false,
+      "default": "/opt/homebrew/bin/herdr"
+    },
+    {
+      "name": "terminalApp",
+      "title": "Terminal App",
+      "description": "focus時に前面化するターミナルアプリ。未設定ならフォーカス変更のみ行う。",
+      "type": "appPicker",
+      "required": false
+    },
+    {
+      "name": "readLines",
+      "title": "Output Lines",
+      "description": "出力プレビューで読み込む行数。",
+      "type": "textfield",
+      "required": false,
+      "default": "200"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.104.1",
+    "@raycast/utils": "^2.2.4"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.1.1",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.5",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "react": "^19.2.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.2"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc -p tsconfig.test.json"
+  }
+}
