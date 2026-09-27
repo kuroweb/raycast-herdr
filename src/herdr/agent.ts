@@ -84,6 +84,19 @@ export async function clearAgentName(target: string): Promise<void> {
   await runJson(["agent", "rename", target, "--clear"]);
 }
 
+/** 承認や質問への応答。キー名は herdr の語彙（esc, enter, up, down, 数字 など）。 */
+export async function sendAgentKeys(target: string, keys: string[]): Promise<void> {
+  await runJson(["agent", "send-keys", target, ...keys]);
+}
+
+/**
+ * Herdrが「応答待ち」と判定した画面を読む。
+ * 通常の出力より狭い範囲で、承認や選択肢の部分だけが返る。
+ */
+export async function readAgentDetection(target: string): Promise<string> {
+  return runText(["agent", "read", target, "--source", "detection", "--format", "text"]);
+}
+
 export async function readAgentOutput(target: string): Promise<string> {
   // JSONではなく生テキストが返る唯一の経路。
   return runText(["agent", "read", target, "--source", "recent", "--lines", String(readLines()), "--format", "text"]);

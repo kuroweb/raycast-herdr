@@ -19,6 +19,7 @@ import { shortenPath } from "../herdr/workspace";
 import { TerminalOutput } from "../components/terminal-output";
 import { RenamePaneForm } from "./pane-forms";
 import { PromptForm } from "../agents/prompt-form";
+import { RespondView } from "../agents/respond";
 
 type Props = {
   pane: Pane;
@@ -89,6 +90,14 @@ export function PaneItem({ pane, tabLabel, onRefresh, extraSections }: Props) {
                 />
               }
             />
+            {pane.agent ? (
+              <Action.Push
+                title="応答する"
+                icon={Icon.Reply}
+                shortcut={Keyboard.Shortcut.Common.ToggleQuickLook}
+                target={<RespondView target={pane.id} title={title} />}
+              />
+            ) : null}
             {pane.agent ? (
               <Action.Push
                 title="プロンプトを送信"

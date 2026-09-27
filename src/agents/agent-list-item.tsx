@@ -1,11 +1,13 @@
-import { Action, ActionPanel, Icon, Keyboard, List, showToast, Toast } from "@raycast/api";
+import { Action, ActionPanel, Alert, confirmAlert, Icon, Keyboard, List, showToast, Toast } from "@raycast/api";
 import { Agent } from "../herdr/types";
 import { agentIcon, ENTITY_ICON, presentation } from "../herdr/status";
 import { shortenPath } from "../herdr/workspace";
 import { describeError } from "../herdr/errors";
 import { focusAgentAndReveal } from "../herdr/terminal";
+import { closePane } from "../herdr/layout";
 import { AgentOutput } from "./output-detail";
 import { PromptForm } from "./prompt-form";
+import { RespondView } from "./respond";
 import { RenameForm } from "./rename-form";
 
 type Props = {
@@ -15,6 +17,24 @@ type Props = {
 
 export function AgentListItem({ agent, onRefresh }: Props) {
   const status = presentation(agent.status);
+
+  async function close() {
+    const confirmed = await confirmAlert({
+      title: `${agent.title} を閉じますか`,
+      message: "このpaneで動いているagentも終了します。",
+      icon: Icon.Trash,
+      primaryAction: { title: "閉じる", style: Alert.ActionStyle.Destructive },
+    });
+    if (!confirmed) {
+      return;
+    }
+    try {
+      await closePane(agent.paneId);
+      onRefresh();
+    } catch (error) {
+      await showToast({ style: Toast.Style.Failure, title: "閉じられません", message: describeError(error) });
+    }
+  }
 
   return (
     <List.Item
@@ -47,6 +67,12 @@ export function AgentListItem({ agent, onRefresh }: Props) {
               }}
             />
             <Action.Push
+              title="応答する"
+              icon={Icon.Reply}
+              shortcut={Keyboard.Shortcut.Common.ToggleQuickLook}
+              target={<RespondView target={agent.paneId} title={agent.title} />}
+            />
+            <Action.Push
               title="プロンプトを送信"
               icon={ENTITY_ICON.agent}
               shortcut={{ modifiers: ["cmd"], key: "m" }}
@@ -63,6 +89,15 @@ export function AgentListItem({ agent, onRefresh }: Props) {
               icon={ENTITY_ICON.agent}
               shortcut={Keyboard.Shortcut.Common.Edit}
               target={<RenameForm agent={agent} onRenamed={onRefresh} />}
+            />
+          </ActionPanel.Section>
+          <ActionPanel.Section>
+            <Action
+              title="Paneを閉じる"
+              icon={ENTITY_ICON.pane}
+              style={Action.Style.Destructive}
+              shortcut={Keyboard.Shortcut.Common.Remove}
+              onAction={close}
             />
           </ActionPanel.Section>
           <ActionPanel.Section>

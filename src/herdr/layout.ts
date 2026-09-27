@@ -328,6 +328,11 @@ export async function toggleZoom(paneId: string): Promise<void> {
   await runJson(["pane", "zoom", "--pane", paneId, "--toggle"]);
 }
 
+/** 自由記述の回答に使う。送るのは文字だけで、確定は別途 enter を送る。 */
+export async function sendPaneText(paneId: string, text: string): Promise<void> {
+  await runJson(["pane", "send-text", paneId, text]);
+}
+
 export async function readPaneOutput(paneId: string): Promise<string> {
   return runText(["pane", "read", paneId, "--source", "recent", "--lines", String(readLines()), "--format", "text"]);
 }

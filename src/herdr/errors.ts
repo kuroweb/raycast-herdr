@@ -6,6 +6,7 @@ const MESSAGES: Record<string, string> = {
   agent_prompt_stalled: "プロンプトを送信しましたが、agentが反応しませんでした。",
   timeout: "herdrの応答がタイムアウトしました。",
   invalid_agent_name: "agent名は英小文字・数字・- _ のみ、32文字以内です。",
+  invalid_key: "このキー名はHerdrが受け付けません。esc / enter / up / down / 数字 などを使ってください。",
   unexpected_response: "herdrの応答を解釈できませんでした。",
 };
 
