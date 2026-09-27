@@ -22,6 +22,8 @@ declare type Preferences = ExtensionPreferences
 declare namespace Preferences {
   /** Preferences accessible in the `agents` command */
   export type Agents = ExtensionPreferences & {}
+  /** Preferences accessible in the `spaces` command */
+  export type Spaces = ExtensionPreferences & {}
   /** Preferences accessible in the `agent-status` command */
   export type AgentStatus = ExtensionPreferences & {}
   /** Preferences accessible in the `open-herdr` command */
@@ -31,6 +33,8 @@ declare namespace Preferences {
 declare namespace Arguments {
   /** Arguments passed to the `agents` command */
   export type Agents = {}
+  /** Arguments passed to the `spaces` command */
+  export type Spaces = {}
   /** Arguments passed to the `agent-status` command */
   export type AgentStatus = {}
   /** Arguments passed to the `open-herdr` command */

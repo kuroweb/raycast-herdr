@@ -3,16 +3,20 @@ import { focusAgent } from "./agent";
 import { terminalAppPath } from "./preferences";
 
 /**
- * agent focus はソケット越しにTUI内のフォーカスを移すだけで、ターミナルは前面に来ず
- * Raycastも開いたままになる。agentへ辿り着くのが目的の操作なので、
- * Raycastを閉じてターミナルを前面化するところまでを1手で行う。
+ * Herdrのフォーカスを移したあとの後処理。
+ * focus系コマンドはソケット越しにTUI内のフォーカスを移すだけで、Raycastは開いたまま、
+ * ターミナルも前面に来ない。agentやworkspaceへ辿り着くのが目的なので、そこまでを1手で行う。
  */
-export async function focusAgentAndReveal(target: string): Promise<void> {
-  await focusAgent(target);
+export async function revealTerminal(): Promise<void> {
   // 先に閉じないと、後続のアプリ前面化がRaycastのウィンドウに隠れる。
   await closeMainWindow({ clearRootSearch: true });
   const app = terminalAppPath();
   if (app) {
     await open(app);
   }
+}
+
+export async function focusAgentAndReveal(target: string): Promise<void> {
+  await focusAgent(target);
+  await revealTerminal();
 }

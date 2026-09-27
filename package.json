@@ -28,6 +28,18 @@
       ]
     },
     {
+      "name": "spaces",
+      "title": "Spaces",
+      "description": "Herdrのworkspaceを一覧し、フォーカス・作成・ラベル変更・クローズを行う。",
+      "mode": "view",
+      "keywords": [
+        "herdr",
+        "workspace",
+        "space",
+        "project"
+      ]
+    },
+    {
       "name": "agent-status",
       "title": "Agent Status",
       "description": "稼働中agentの状態をメニューバーに常時表示する。",

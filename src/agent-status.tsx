@@ -59,6 +59,11 @@ export default function Command() {
           icon={Icon.List}
           onAction={() => open("raycast://extensions/kuroweb/herdr/agents")}
         />
+        <MenuBarExtra.Item
+          title="Spaces一覧を開く"
+          icon={Icon.AppWindowGrid2x2}
+          onAction={() => open("raycast://extensions/kuroweb/herdr/spaces")}
+        />
         <MenuBarExtra.Item title="Herdrを開く" icon={Icon.Terminal} onAction={() => openHerdr()} />
         <MenuBarExtra.Item title="更新" icon={Icon.ArrowClockwise} onAction={revalidate} />
         {terminalAppPath() === undefined ? (
