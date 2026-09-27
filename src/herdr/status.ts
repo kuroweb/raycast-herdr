@@ -35,31 +35,31 @@ export const ENTITY_ICON = {
  * ロゴが手元にあるものはロゴを使い、無いものは種別が違えば形が違う、という区別に徹する。
  */
 const AGENT_KIND_ICON: Record<string, Image.ImageLike> = {
-  // ロゴが手元のアプリから取れるもの
-  claude: { source: "agent-claude.png" },
-  codex: { source: "agent-codex.png" },
-  cursor: { source: "agent-cursor.png" },
-  // 以降は herdr agent start --kind が受け付ける種別。形が重ならないように割り当てる。
+  // ロゴは公式のHerdr拡張(raycast/extensions)のものに合わせる。
+  amp: { source: "agents/amp.png" },
+  claude: { source: "agents/claude.png" },
+  cline: { source: { light: "agents/cline-light.png", dark: "agents/cline-dark.png" } },
+  codex: { source: "agents/codex.png" },
+  copilot: { source: { light: "agents/copilot-light.png", dark: "agents/copilot-dark.png" } },
+  cursor: { source: { light: "agents/cursor-light.png", dark: "agents/cursor-dark.png" } },
+  gemini: { source: "agents/gemini.png" },
+  grok: { source: { light: "agents/grok-light.png", dark: "agents/grok-dark.png" } },
+  hermes: { source: { light: "agents/hermes-light.png", dark: "agents/hermes-dark.png" } },
+  kilo: { source: { light: "agents/kilo-light.png", dark: "agents/kilo-dark.png" } },
+  kimi: { source: "agents/kimi.png" },
+  mastracode: { source: { light: "agents/mastracode-light.png", dark: "agents/mastracode-dark.png" } },
+  opencode: { source: { light: "agents/opencode-light.png", dark: "agents/opencode-dark.png" } },
+  pi: { source: { light: "agents/pi-light.svg", dark: "agents/pi-dark.svg" } },
+  qodercli: { source: "agents/qodercli.png" },
+  // ロゴが無い種別は、形が重ならない組み込みアイコンで区別する。
   agy: Icon.Anchor,
-  amp: Icon.Bolt,
-  cline: Icon.CodeBlock,
-  copilot: Icon.Airplane,
   devin: Icon.Hammer,
   droid: Icon.Cog,
-  gemini: Icon.Stars,
-  grok: Icon.Wand,
-  hermes: Icon.Envelope,
-  kilo: Icon.Gauge,
-  kimi: Icon.Moon,
   kiro: Icon.Leaf,
   letta: Icon.Bookmark,
   maki: Icon.CircleFilled,
-  mastracode: Icon.Book,
   muse: Icon.Brush,
   omp: Icon.Box,
-  opencode: Icon.Terminal,
-  pi: Icon.Calculator,
-  qodercli: Icon.Code,
   qwen: Icon.Globe,
 };
 

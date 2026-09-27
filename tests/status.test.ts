@@ -78,7 +78,13 @@ describe("agentIcon", () => {
   });
 
   it("ロゴを持つ種別は色を塗らずそのまま返す", () => {
-    expect(agentIcon("claude", Color.Orange)).toEqual({ source: "agent-claude.png" });
+    expect(agentIcon("claude", Color.Orange)).toEqual({ source: "agents/claude.png" });
+  });
+
+  it("明暗のロゴがある種別はテーマごとに切り替える", () => {
+    expect(agentIcon("cursor", Color.Orange)).toEqual({
+      source: { light: "agents/cursor-light.png", dark: "agents/cursor-dark.png" },
+    });
   });
 
   it("大文字小文字を無視する", () => {
