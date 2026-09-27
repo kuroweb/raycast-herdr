@@ -1,6 +1,7 @@
 import { homedir } from "node:os";
 import { runJson } from "./cli";
 import { fetchSnapshot, Snapshot } from "./snapshot";
+import { branchOf } from "./git";
 import { parsePanes, parseTabs, withProcessNames, Pane, Tab } from "./layout";
 import { AGENT_STATUSES, AgentStatus } from "./types";
 
@@ -16,6 +17,8 @@ export type Space = {
   focused: boolean;
   /** 配下paneから導出した代表ディレクトリ。workspace自体はcwdを持たない。 */
   cwd?: string;
+  /** 代表ディレクトリのgitブランチ。リポジトリでなければ undefined。 */
+  branch?: string;
   agentCount: number;
 };
 
@@ -52,7 +55,21 @@ export type PaneGroup = { space: Space; tab: Tab; panes: Pane[] };
 
 export async function listPaneGroups(): Promise<PaneGroup[]> {
   const groups = parsePaneGroups(await fetchSnapshot());
-  return Promise.all(groups.map(async (group) => ({ ...group, panes: await withProcessNames(group.panes) })));
+  // ブランチはworkspace単位で1回だけ引く。同じworkspaceがtabの数だけ並ぶため。
+  const branches = new Map<string, string | undefined>();
+  await Promise.all(
+    [...new Set(groups.map((group) => group.space.cwd).filter((cwd): cwd is string => cwd !== undefined))].map(
+      async (cwd) => branches.set(cwd, await branchOf(cwd)),
+    ),
+  );
+
+  return Promise.all(
+    groups.map(async (group) => ({
+      ...group,
+      space: { ...group.space, branch: group.space.cwd ? branches.get(group.space.cwd) : undefined },
+      panes: await withProcessNames(group.panes),
+    })),
+  );
 }
 
 export function parsePaneGroups(snapshot: Snapshot): PaneGroup[] {
