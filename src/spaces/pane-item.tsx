@@ -12,21 +12,24 @@ import {
   Toast,
 } from "@raycast/api";
 import { closePane, focusPane, Pane, readPaneOutput, splitPane, toggleZoom } from "../herdr/layout";
-import { ENTITY_ICON, presentation } from "../herdr/status";
+import { agentIcon, ENTITY_ICON, presentation } from "../herdr/status";
 import { describeError } from "../herdr/errors";
 import { revealTerminal } from "../herdr/terminal";
 import { shortenPath } from "../herdr/workspace";
 import { TerminalOutput } from "../components/terminal-output";
 import { RenamePaneForm } from "./pane-forms";
+import { PromptForm } from "../agents/prompt-form";
 
 type Props = {
   pane: Pane;
+  /** 所属tabの表示名。pathと同じく、行を見ただけで在り処が分かるようにする。 */
+  tabLabel: string;
   onRefresh: () => void;
-  /** flat表示ではworkspaceが見出しになるので、行のディレクトリ表示を省く。 */
-  showDirectory?: boolean;
+  /** workspaceへの操作。workspaceは見出しにしか出ないので、行から呼べるようにする。 */
+  extraSections?: ActionPanel.Children;
 };
 
-export function PaneItem({ pane, onRefresh, showDirectory = true }: Props) {
+export function PaneItem({ pane, tabLabel, onRefresh, extraSections }: Props) {
   const title = paneTitle(pane);
   const status = presentation(pane.status);
 
@@ -58,8 +61,8 @@ export function PaneItem({ pane, onRefresh, showDirectory = true }: Props) {
     <List.Item
       icon={iconOf(pane)}
       title={title}
-      subtitle={showDirectory && pane.cwd.length > 0 ? shortenPath(pane.cwd) : undefined}
-      keywords={[pane.id, pane.cwd, pane.agent ?? ""]}
+      subtitle={subtitleOf(pane, tabLabel)}
+      keywords={[pane.id, pane.cwd, pane.agent ?? "", tabLabel]}
       accessories={accessoriesOf(pane)}
       actions={
         <ActionPanel>
@@ -86,6 +89,14 @@ export function PaneItem({ pane, onRefresh, showDirectory = true }: Props) {
                 />
               }
             />
+            {pane.agent ? (
+              <Action.Push
+                title="プロンプトを送信"
+                icon={ENTITY_ICON.agent}
+                shortcut={{ modifiers: ["cmd"], key: "m" }}
+                target={<PromptForm target={pane.id} title={title} cwd={pane.cwd} onSubmitted={onRefresh} />}
+              />
+            ) : null}
             <Action.Push
               title="ラベルを変更"
               icon={ENTITY_ICON.pane}
@@ -122,6 +133,7 @@ export function PaneItem({ pane, onRefresh, showDirectory = true }: Props) {
               onAction={close}
             />
           </ActionPanel.Section>
+          {extraSections}
           <ActionPanel.Section>
             <Action.CopyToClipboard
               title="Pane IDをコピー"
@@ -146,10 +158,15 @@ function paneTitle(pane: Pane): string {
   return pane.label ?? pane.title ?? "シェル";
 }
 
-/** 形は種別（pane）、色は状態。agentが居ないpaneに状態は無いので灰色にする。 */
+/**
+ * 中身が分かる形にする。agentが動いていればその種別のアイコン、
+ * 動いていなければシェル。Agentsコマンドの行と同じ見た目になる。
+ */
 function iconOf(pane: Pane): Image.ImageLike {
   const status = presentation(pane.status);
-  return { source: ENTITY_ICON.pane, tintColor: pane.agent ? status.color : Color.SecondaryText };
+  return pane.agent
+    ? agentIcon(pane.agent, status.color)
+    : { source: ENTITY_ICON.shell, tintColor: Color.SecondaryText };
 }
 
 /** 右端は フォーカス中 → 状態。種別はアイコンの形で出すので、タグは状態に使う。 */
@@ -159,4 +176,10 @@ function accessoriesOf(pane: Pane): List.Item.Accessory[] {
     ...(pane.focused ? [{ icon: Icon.Eye, tooltip: "フォーカス中" }] : []),
     ...(pane.agent ? [{ tag: { value: status.label, color: status.color } }] : []),
   ];
+}
+
+/** 在り処を1行にまとめる。tabは全workspaceで同じ番号が並ぶので、pathと並べて意味を持たせる。 */
+function subtitleOf(pane: Pane, tabLabel: string): string {
+  const path = pane.cwd.length > 0 ? shortenPath(pane.cwd) : "";
+  return path.length > 0 ? `Tab ${tabLabel} · ${path}` : `Tab ${tabLabel}`;
 }

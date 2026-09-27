@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import { SpaceItem } from "./spaces/space-item";
-import { TabItem } from "./spaces/tab-item";
+import { SpaceActions } from "./spaces/space-actions";
+import { TabActions } from "./spaces/tab-actions";
 import { PaneItem } from "./spaces/pane-item";
 import { CreateSpaceForm } from "./spaces/create-form";
-import { listPaneGroups, shortenPath } from "./herdr/workspace";
+import { listPaneGroups } from "./herdr/workspace";
 import { describeError, isUnavailable } from "./herdr/errors";
 import { openHerdr } from "./herdr/launch";
 import { ENTITY_ICON } from "./herdr/status";
@@ -57,21 +57,27 @@ export default function Command() {
             }
           />
           {/*
-            workspace → tab → pane の順に流す。並び順そのものが階層を表す。
-            Raycastのセクションは見出しの文字が無いと区切りとして描かれないので、
-            workspaceの行と重複しないディレクトリを見出しに置く。
+            行はpaneだけにする。workspaceは見出し、tabはpane行の副題に出し、
+            どちらも行を占めない。tabはpaneが1つだけのことが多く、行にすると空振りが増える。
           */}
           {spaces.map((space) => (
-            <List.Section key={space.id} title={space.cwd ? shortenPath(space.cwd) : space.label}>
-              <SpaceItem space={space} spaces={spaces} onRefresh={revalidate} />
+            <List.Section key={space.id} title={space.label} subtitle={space.branch}>
               {groups
                 .filter((group) => group.space.id === space.id)
-                .flatMap(({ tab, panes }) => [
-                  <TabItem key={tab.id} tab={tab} space={space} onRefresh={revalidate} />,
-                  ...panes.map((pane) => (
-                    <PaneItem key={pane.id} pane={pane} onRefresh={revalidate} showDirectory={pane.cwd !== space.cwd} />
+                .flatMap(({ tab, panes }) =>
+                  panes.map((pane) => (
+                    <PaneItem
+                      key={pane.id}
+                      pane={pane}
+                      tabLabel={tab.label}
+                      onRefresh={revalidate}
+                      extraSections={[
+                        <TabActions key="tab" tab={tab} space={space} onRefresh={revalidate} />,
+                        <SpaceActions key="space" space={space} spaces={spaces} onRefresh={revalidate} />,
+                      ]}
+                    />
                   )),
-                ])}
+                )}
             </List.Section>
           ))}
         </>
