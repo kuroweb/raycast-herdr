@@ -25,7 +25,7 @@ export function AgentListItem({ agent, onRefresh }: Props) {
       accessories={[
         ...(agent.focused ? [{ icon: Icon.Eye, tooltip: "フォーカス中" }] : []),
         { tag: { value: status.label, color: status.color } },
-        { text: agent.name ?? agent.kind, tooltip: agent.paneId },
+        { text: agent.name ?? agent.kind, tooltip: agent.cwd },
       ]}
       actions={
         <ActionPanel>

@@ -18,7 +18,6 @@ export function AgentOutput({ agent }: Props) {
       status={{ label: status.label, color: status.color }}
       rows={[
         { title: "Agent", text: agent.name ?? agent.kind },
-        { title: "Pane", text: agent.paneId },
         { title: "Directory", text: agent.cwd },
       ]}
     />

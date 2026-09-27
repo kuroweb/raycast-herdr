@@ -56,7 +56,8 @@ export function RenameForm({ agent, onRenamed }: Props) {
         </ActionPanel>
       }
     >
-      <Form.Description title="Agent" text={`${agent.title} (${agent.paneId})`} />
+      <Form.Description title="Agent" text={agent.title} />
+      <Form.Description title="Directory" text={agent.cwd} />
       <Form.TextField
         id="name"
         title="Agent名"

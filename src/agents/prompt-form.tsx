@@ -46,7 +46,8 @@ export function PromptForm({ agent, onSubmitted }: Props) {
         </ActionPanel>
       }
     >
-      <Form.Description title="Agent" text={`${agent.title} (${agent.paneId})`} />
+      <Form.Description title="Agent" text={agent.title} />
+      <Form.Description title="Directory" text={agent.cwd} />
       <Form.TextArea
         id="prompt"
         title="プロンプト"
