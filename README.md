@@ -1,20 +1,85 @@
-# raycast-herdr
+# Raycast Herdr
 
-Herdrで稼働中のコーディングagentを、Raycastから一覧・監視・操作するための拡張（PoC）。
+[Herdr](https://herdr.dev) で動いているコーディング agent の状態を把握し、そのまま操作する Raycast 拡張。
 
-## できること
+- **Agents**: 稼働中の agent を一覧し、フォーカス・プロンプト送信・出力確認・リネームを行う。
+- **Agent Status**: 手が止まっている agent の件数をメニューバーに常時出し、そこから直接フォーカスする。
 
-- **Agents**（view）: 稼働中agentの一覧。要対応（blocked → done）を先頭に並べ、タイトル・作業ディレクトリ・pane IDで検索できる。開いている間は2秒ごとに状態を更新する。
-  - `Enter` フォーカス（Terminal App設定時はターミナルを前面化）
-  - `⌘M` プロンプト送信
-  - `⌘O` ターミナル出力のプレビュー
-  - `⌘E` agent名のリネーム / 解除
-  - `⌘⇧C` pane IDのコピー、`⌘R` 再読み込み
-- **Agent Status**（menu-bar）: 要対応件数をメニューバーに表示し、status別のメニューから直接フォーカスする。30秒間隔で更新。
+Herdr の TUI に attach しなくても、承認待ち（blocked）や完了（done）に気づけるようにするのが目的。
+
+## 必要なもの
+
+- macOS / Raycast
+- Herdr 0.9.1 以降（`herdr status server` が `status: running` を返す状態）
+- （任意）ターミナルアプリ。フォーカス時に前面へ出すときに使う。
+
+Notion のようなトークンは要らない。ローカルの `herdr` コマンドをそのまま実行して状態を読む。
+
+## セットアップ
+
+### 1. Herdr サーバを起動しておく
+
+```bash
+herdr status server
+```
+
+`status: running` でなければ、`herdr` で TUI を起動しておく。サーバに届かないときは、一覧とメニューバーにエラーとして出る。
+
+### 2. Herdr Binary を確認する
+
+Raycast はログインシェルの `PATH` を継承しないので、`herdr` の絶対パスが必要。既定は `/opt/homebrew/bin/herdr`。
+
+```bash
+which herdr
+```
+
+これと違う場所にあれば、この拡張の Preferences で差し替える。
+
+### 3. Terminal App を設定する（任意）
+
+`herdr agent focus` は Herdr の TUI 内でフォーカスを移すだけで、ターミナル自体は前面に来ない。Preferences で使っているターミナルアプリを選ぶと、フォーカスと同時に前面化する。未設定なら Raycast を閉じるところまでで止まる。
+
+### 設定一覧
+
+| 設定 | 既定 | 用途 |
+| --- | --- | --- |
+| Herdr Binary | `/opt/homebrew/bin/herdr` | `herdr` コマンドの絶対パス |
+| Terminal App | 未設定 | フォーカス時に前面化するアプリ |
+| Output Lines | `200` | 出力プレビューで読む行数 |
+
+## コマンド
+
+### Agents
+
+- タイトル、作業ディレクトリ、pane ID、agent 種別を横断検索する。
+- 並び順は blocked → done → working → idle → unknown。手を入れる必要があるものが上に来る。同順位はタイトル順。
+- 開いている間は2秒ごとに状態を取り直す。状態は Herdr 側で変わるため、こちらから見に行く必要がある。
+- Enter でその agent にフォーカスし、Raycast を閉じてターミナルを前面化する。
+- `⌘M` でプロンプトを送る。送信の成否だけを見て返り、agent の応答完了は待たない。agent が blocked のときは Herdr 側で拒否されるので、ターミナルで承認を返してから送る。
+- `⌘O` でターミナル出力をプレビューする。開いた時点のスナップショットで、`⌘R` で取り直す。
+- `⌘E` で agent 名を付ける。`[a-z][a-z0-9_-]{0,31}` かつ live agent 間で一意。名前の解除もこの画面から行う。
+- `⌘⇧C` で pane ID をコピーする。`herdr agent ...` を手で叩くときの target になる。
+- 稼働中の agent が無いとき、`herdr` が見つからないとき、サーバに届かないときで、それぞれ別の案内を出す。
+
+### Agent Status
+
+- blocked と done の合計をメニューバーのタイトルに出す。0件のときは数字を出さず、アイコンだけにする。
+- アイコンの色は最優先の状態に従う（blocked は赤、done は緑、working は橙、それ以外は灰）。
+- メニューは状態ごとのセクションに分かれ、項目のクリックでフォーカスする。
+- 30秒間隔で更新する。Raycast が閉じていても動く。
+- Terminal App が未設定のときは、設定へ誘導する項目が出る。
+
+## 状態の読み方
+
+Herdr の agent は idle / working / blocked / done / unknown の5状態。
+
+- **blocked**: 承認や質問の UI を Herdr が認識した状態。返事をするまで agent は進まない。
+- **done**: 完了のうち、まだ確認していないもの。フォーカスすると Herdr 側で確認済みになり `idle` に変わる。この拡張でフォーカスしても同じなので、一覧から開くと done が消えるのは正常。
+- **unknown**: agent はいるが分類できない状態。完了を意味しない。
 
 ## 仕組み
 
-`herdr` CLI をそのまま実行して結果を読む。ソケットAPIは直接触らない。
+ソケット API は直接扱わず、`herdr` CLI を実行して結果を読む。CLI が既定で JSON を返すため、Herdr 本体のプロトコル変更から隔離される。
 
 | 操作 | コマンド |
 | --- | --- |
@@ -25,28 +90,43 @@ Herdrで稼働中のコーディングagentを、Raycastから一覧・監視・
 | 出力読み | `herdr agent read <pane-id> --source recent --lines N` |
 | サーバ確認 | `herdr status server` |
 
-agent commandsの `<TARGET>` には **pane ID** を使う。live agent nameは通常未設定で、命名規則と一意性の制約があるため。
+target には pane ID を使う。live agent name は通常未設定で、命名規則と一意性の制約があるため一覧からの指定に向かない。`herdr agent read` だけは JSON ではなく生テキストを返すので、別経路で扱う。
 
-## 設定
+## ローカルで開発する
 
-| 設定 | 既定 | 備考 |
-| --- | --- | --- |
-| Herdr Binary | `/opt/homebrew/bin/herdr` | Raycastはログインシェルの `PATH` を継承しないため絶対パスが必要 |
-| Terminal App | 未設定 | `agent focus` はTUI内のフォーカスを移すだけでターミナルを前面化しないため、必要ならここで指定する |
-| Output Lines | `200` | 出力プレビューの行数 |
-
-## 挙動の注意
-
-- `done` は「サーバがまだ確認済みにしていない完了」。フォーカスすると `idle` に変わるのが正常な挙動。
-- agentが `blocked`（承認待ち）のときは `agent prompt` が送信前に拒否される。
-- `herdr agent read` だけはJSONではなく生テキストを返すため、専用の経路で扱っている。
-
-## 開発
-
-```sh
+```bash
 npm install
-npm run dev        # Raycastに開発版として読み込む
-npm test
-npm run typecheck
-npm run lint
+npm run dev
 ```
+
+Raycast を開くと、開発中の拡張がルート検索に出る。
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
+
+`npm run lint` は author の検証で失敗する。Raycast Store に登録されたハンドルでないと 404 になるためで、開発とビルドには影響しない。
+
+### テスト
+
+```bash
+npm run test
+npm run test:watch
+```
+
+- ユニットテストは `tests/` にあり、`src/` と同じ構成で並べる。
+- Raycast API は `tests/support/` のモックへ差し替えるので、実行に Raycast も Herdr も要らない。
+- コマンドの UI（`*.tsx`）はテスト対象外。CLI 応答のパース、並び順、状態の集計を `herdr/` 側へ切り出してテストする。
+
+### ディレクトリ構成
+
+```
+src/
+  herdr/        herdr CLI の実行・応答パース・状態の表示規則・設定の解決
+  agents/       Agents コマンドの一覧項目と、プロンプト・リネーム・出力の各画面
+  *.tsx         package.json の commands に対応するエントリポイント
+```
+
+子プロセスを起動するのは `herdr/cli.ts` だけ。その上のパースと並び順は純関数にして、実際に Herdr を動かさずに検証できるようにしている。
