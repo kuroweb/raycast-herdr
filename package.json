@@ -38,6 +38,18 @@
         "agent",
         "status"
       ]
+    },
+    {
+      "name": "open-herdr",
+      "title": "Open Herdr",
+      "description": "ターミナルの新規ウィンドウでHerdrを起動、または既存セッションにattachする。",
+      "mode": "no-view",
+      "keywords": [
+        "herdr",
+        "terminal",
+        "attach",
+        "session"
+      ]
     }
   ],
   "preferences": [
@@ -52,7 +64,7 @@
     {
       "name": "terminalApp",
       "title": "Terminal App",
-      "description": "focus時に前面化するターミナルアプリ。未設定ならフォーカス変更のみ行う。",
+      "description": "focus時に前面化し、Open HerdrでHerdrを起動するターミナルアプリ。未設定ならTerminalを使う。",
       "type": "appPicker",
       "required": false
     },

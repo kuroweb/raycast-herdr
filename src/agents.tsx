@@ -5,6 +5,7 @@ import { AgentListItem } from "./agents/agent-list-item";
 import { listAgents } from "./herdr/agent";
 import { describeError, isUnavailable } from "./herdr/errors";
 import { sortAgents } from "./herdr/status";
+import { openHerdr } from "./herdr/launch";
 
 const REFRESH_INTERVAL_MS = 2_000;
 
@@ -29,6 +30,7 @@ export default function Command() {
           actions={
             <ActionPanel>
               <Action title="再試行" icon={Icon.ArrowClockwise} onAction={revalidate} />
+              <Action title="Herdrを開く" icon={Icon.Terminal} onAction={() => openHerdr()} />
             </ActionPanel>
           }
         />
@@ -40,6 +42,7 @@ export default function Command() {
             description="Herdrのpaneでagentを起動すると、ここに表示されます。"
             actions={
               <ActionPanel>
+                <Action title="Herdrを開く" icon={Icon.Terminal} onAction={() => openHerdr()} />
                 <Action title="再読み込み" icon={Icon.ArrowClockwise} onAction={revalidate} />
               </ActionPanel>
             }

@@ -1,6 +1,7 @@
 import { Icon, MenuBarExtra, open, openCommandPreferences } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { listAgents } from "./herdr/agent";
+import { openHerdr } from "./herdr/launch";
 import { describeError } from "./herdr/errors";
 import { attentionCount, dominantStatus, groupByStatus, presentation } from "./herdr/status";
 import { terminalAppPath } from "./herdr/preferences";
@@ -14,6 +15,7 @@ export default function Command() {
     return (
       <MenuBarExtra icon={{ source: Icon.Warning }} isLoading={isLoading} tooltip="Herdr">
         <MenuBarExtra.Item title={describeError(error)} />
+        <MenuBarExtra.Item title="Herdrを開く" icon={Icon.Terminal} onAction={() => openHerdr()} />
         <MenuBarExtra.Item title="再試行" icon={Icon.ArrowClockwise} onAction={revalidate} />
         <MenuBarExtra.Item title="設定を開く" icon={Icon.Gear} onAction={openCommandPreferences} />
       </MenuBarExtra>
@@ -57,6 +59,7 @@ export default function Command() {
           icon={Icon.List}
           onAction={() => open("raycast://extensions/kuroweb/herdr/agents")}
         />
+        <MenuBarExtra.Item title="Herdrを開く" icon={Icon.Terminal} onAction={() => openHerdr()} />
         <MenuBarExtra.Item title="更新" icon={Icon.ArrowClockwise} onAction={revalidate} />
         {terminalAppPath() === undefined ? (
           <MenuBarExtra.Item title="Terminal Appを設定する" icon={Icon.Gear} onAction={openCommandPreferences} />

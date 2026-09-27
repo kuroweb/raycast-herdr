@@ -1,8 +1,8 @@
-import { getPreferenceValues } from "@raycast/api";
+import { Application, getPreferenceValues } from "@raycast/api";
 
 export type HerdrPreferences = {
   herdrPath?: string;
-  terminalApp?: { path: string; name: string };
+  terminalApp?: Application;
   readLines?: string;
 };
 
@@ -16,6 +16,10 @@ export function herdrBinaryPath(): string {
 
 export function terminalAppPath(): string | undefined {
   return preferences().terminalApp?.path;
+}
+
+export function terminalApp(): Application | undefined {
+  return preferences().terminalApp;
 }
 
 export function readLines(): number {

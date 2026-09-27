@@ -10,7 +10,7 @@
 type ExtensionPreferences = {
   /** Herdr Binary - herdrコマンドの絶対パス。RaycastはログインシェルのPATHを継承しないため絶対パスが必要。 */
   "herdrPath": string,
-  /** Terminal App - focus時に前面化するターミナルアプリ。未設定ならフォーカス変更のみ行う。 */
+  /** Terminal App - focus時に前面化し、Open HerdrでHerdrを起動するターミナルアプリ。未設定ならTerminalを使う。 */
   "terminalApp"?: import("@raycast/api").Application,
   /** Output Lines - 出力プレビューで読み込む行数。 */
   "readLines": string
@@ -24,6 +24,8 @@ declare namespace Preferences {
   export type Agents = ExtensionPreferences & {}
   /** Preferences accessible in the `agent-status` command */
   export type AgentStatus = ExtensionPreferences & {}
+  /** Preferences accessible in the `open-herdr` command */
+  export type OpenHerdr = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -31,5 +33,7 @@ declare namespace Arguments {
   export type Agents = {}
   /** Arguments passed to the `agent-status` command */
   export type AgentStatus = {}
+  /** Arguments passed to the `open-herdr` command */
+  export type OpenHerdr = {}
 }
 
