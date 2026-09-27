@@ -2,11 +2,7 @@
 
 [Herdr](https://herdr.dev) で動いているコーディング agent の状態を把握し、そのまま操作する Raycast 拡張。
 
-- **Agents**: 稼働中の agent を一覧し、フォーカス・プロンプト送信・出力確認・リネームを行う。
-- **Agent Status**: 手が止まっている agent の件数をメニューバーに常時出し、そこから直接フォーカスする。
-- **Open Herdr**: ターミナルの新規ウィンドウで Herdr を起動する。既存セッションがあれば attach する。
-
-Herdr の TUI に attach しなくても、承認待ち（blocked）や完了（done）に気づけるようにするのが目的。
+Herdr の TUI に attach しなくても、承認待ち（blocked）や完了（done）に気づき、その agent へ一手で辿り着けるようにするのが目的。
 
 ## 必要なもの
 
