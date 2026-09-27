@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { expandPath, parseSpaceSections, parseSpaces, shortenPath } from "../src/herdr/workspace";
+import { expandPath, parsePaneGroups, parseSpaces, shortenPath } from "../src/herdr/workspace";
 
 const snapshot = {
   workspaces: [
@@ -77,7 +77,7 @@ describe("expandPath", () => {
   });
 });
 
-describe("parseSpaceSections", () => {
+describe("parsePaneGroups", () => {
   const source = {
     workspaces: [
       { workspace_id: "wE", number: 1, label: "app", agent_status: "working", pane_count: 2 },
@@ -95,16 +95,23 @@ describe("parseSpaceSections", () => {
     ],
   };
 
-  it("workspaceごとに配下paneをまとめる", () => {
-    const sections = parseSpaceSections(source);
-    expect(sections.map(({ space, panes }) => [space.id, panes.map((pane) => pane.id)])).toEqual([
-      ["wE", ["wE:p1", "wE:p2"]],
-      ["wC", ["wC:p1"]],
-    ]);
+  it("workspaceの番号順、その中はtabの番号順に、tab単位で塊を作る", () => {
+    expect(parsePaneGroups(source).map(({ space, tab, panes }) => [space.id, tab.label, panes.map((p) => p.id)])).toEqual(
+      [
+        ["wE", "1", ["wE:p1"]],
+        ["wE", "build", ["wE:p2"]],
+        ["wC", "1", ["wC:p1"]],
+      ],
+    );
   });
 
-  it("paneに所属tabのラベルを持たせる", () => {
-    const [app] = parseSpaceSections(source);
-    expect(app.panes.map((pane) => pane.tabLabel)).toEqual(["1", "build"]);
+  it("paneが無いtabも塊として残す", () => {
+    const groups = parsePaneGroups({
+      workspaces: [{ workspace_id: "w1", number: 1, label: "app" }],
+      tabs: [{ tab_id: "w1:t1", workspace_id: "w1", number: 1, label: "1" }],
+      panes: [],
+    });
+    expect(groups).toHaveLength(1);
+    expect(groups[0].panes).toEqual([]);
   });
 });

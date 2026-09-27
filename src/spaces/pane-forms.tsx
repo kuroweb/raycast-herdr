@@ -47,7 +47,7 @@ export function RenamePaneForm({ pane, onRenamed }: { pane: Pane; onRenamed: () 
         </ActionPanel>
       }
     >
-      <Form.Description title="Pane" text={`${pane.title} (${pane.id})`} />
+      <Form.Description title="Pane" text={pane.label ?? pane.title ?? "シェル"} />
       <Form.TextField
         id="label"
         title="ラベル"

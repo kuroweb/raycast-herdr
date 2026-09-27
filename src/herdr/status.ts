@@ -19,6 +19,13 @@ const PRESENTATION: Record<AgentStatus, StatusPresentation> = {
   unknown: { label: "Unknown", icon: Icon.QuestionMark, color: Color.SecondaryText, weight: 4, needsAttention: false },
 };
 
+/** workspace / tab / pane を形で区別する。状態は同じアイコンの色で表す。 */
+export const ENTITY_ICON = {
+  workspace: Icon.AppWindowGrid2x2,
+  tab: Icon.AppWindowList,
+  pane: Icon.AppWindow,
+} as const;
+
 export function presentation(status: AgentStatus): StatusPresentation {
   return PRESENTATION[status];
 }

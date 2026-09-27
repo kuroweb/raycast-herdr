@@ -45,7 +45,7 @@ export function RenameSpaceForm({ space, onRenamed }: Props) {
         </ActionPanel>
       }
     >
-      <Form.Description title="Workspace" text={`${space.label} (${space.id})`} />
+      <Form.Description title="Workspace" text={space.label} />
       <Form.TextField
         id="label"
         title="ラベル"

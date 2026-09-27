@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import { runJson } from "./cli";
 import { fetchSnapshot, Snapshot } from "./snapshot";
-import { parseWorkspacePanes, Pane } from "./layout";
+import { parsePanes, parseTabs, withProcessNames, Pane, Tab } from "./layout";
 import { AGENT_STATUSES, AgentStatus } from "./types";
 
 export type Space = {
@@ -44,15 +44,21 @@ export async function listSpaces(): Promise<Space[]> {
   return parseSpaces(await fetchSnapshot());
 }
 
-/** workspaceを見出し、配下paneを行にした一覧。階層を降りずに全paneを見渡すための形。 */
-export type SpaceSection = { space: Space; panes: Pane[] };
+/**
+ * workspaceとtabを見出し、配下paneを行にした一覧。
+ * 階層を降りずに全paneを見渡しつつ、どのpaneがどのtabに属すかは見出しで分かるようにする。
+ */
+export type PaneGroup = { space: Space; tab: Tab; panes: Pane[] };
 
-export async function listSpaceSections(): Promise<SpaceSection[]> {
-  return parseSpaceSections(await fetchSnapshot());
+export async function listPaneGroups(): Promise<PaneGroup[]> {
+  const groups = parsePaneGroups(await fetchSnapshot());
+  return Promise.all(groups.map(async (group) => ({ ...group, panes: await withProcessNames(group.panes) })));
 }
 
-export function parseSpaceSections(snapshot: Snapshot): SpaceSection[] {
-  return parseSpaces(snapshot).map((space) => ({ space, panes: parseWorkspacePanes(snapshot, space.id) }));
+export function parsePaneGroups(snapshot: Snapshot): PaneGroup[] {
+  return parseSpaces(snapshot).flatMap((space) =>
+    parseTabs(snapshot, space.id).map((tab) => ({ space, tab, panes: parsePanes(snapshot, tab.id) })),
+  );
 }
 
 export function parseSpaces(snapshot: Snapshot): Space[] {

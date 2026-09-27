@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { directionsTo, parseLayout, parsePanes, parseTabs } from "../src/herdr/layout";
+import { directionsTo, parseLayout, parsePanes, parseProcessName, parseTabs } from "../src/herdr/layout";
 
 const snapshot = {
   tabs: [
@@ -44,6 +44,11 @@ describe("parsePanes", () => {
     const [plain] = parsePanes(snapshot, "wE:t1");
     expect(plain.agent).toBeUndefined();
     expect(plain.status).toBe("unknown");
+  });
+
+  it("ターミナルタイトルが無ければtitleを持たない", () => {
+    const [pane] = parsePanes({ panes: [{ pane_id: "w1:p1", tab_id: "w1:t1" }] }, "w1:t1");
+    expect(pane.title).toBeUndefined();
   });
 
   it("agentのpaneは種別と状態を持つ", () => {
@@ -104,5 +109,23 @@ describe("parseLayout", () => {
 
   it("layoutがnullでも落ちない", () => {
     expect(parseLayout(null)).toEqual({ panes: [] });
+  });
+});
+
+describe("parseProcessName", () => {
+  it("前面プロセスの名前を返す", () => {
+    expect(parseProcessName({ foreground_processes: [{ name: "zsh", argv0: "zsh" }] })).toBe("zsh");
+  });
+
+  it("nameが無ければargv0の先頭のハイフンを落として使う", () => {
+    expect(parseProcessName({ foreground_processes: [{ argv0: "-zsh" }] })).toBe("zsh");
+  });
+
+  it("プロセスが無ければundefined", () => {
+    expect(parseProcessName({ foreground_processes: [] })).toBeUndefined();
+  });
+
+  it("想定外の形でも落ちない", () => {
+    expect(parseProcessName(null)).toBeUndefined();
   });
 });

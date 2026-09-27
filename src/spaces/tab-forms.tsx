@@ -1,18 +1,25 @@
 import { useState } from "react";
 import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@raycast/api";
-import { createTab, renameTab, Tab } from "../herdr/layout";
+import { createTab, renameTab } from "../herdr/layout";
 import { describeError } from "../herdr/errors";
 import { revealTerminal } from "../herdr/terminal";
-import { Space } from "../herdr/workspace";
 
-export function CreateTabForm({ space, onCreated }: { space: Space; onCreated: () => void }) {
+export function CreateTabForm({
+  workspaceId,
+  workspaceLabel,
+  onCreated,
+}: {
+  workspaceId: string;
+  workspaceLabel: string;
+  onCreated: () => void;
+}) {
   const { pop } = useNavigation();
   const [label, setLabel] = useState("");
 
   async function submit() {
     const toast = await showToast({ style: Toast.Style.Animated, title: "作成中" });
     try {
-      await createTab({ workspaceId: space.id, label: label.trim() || undefined });
+      await createTab({ workspaceId, label: label.trim() || undefined });
       toast.style = Toast.Style.Success;
       toast.title = "tabを作成しました";
       onCreated();
@@ -38,16 +45,24 @@ export function CreateTabForm({ space, onCreated }: { space: Space; onCreated: (
         </ActionPanel>
       }
     >
-      <Form.Description title="Workspace" text={space.label} />
+      <Form.Description title="Workspace" text={workspaceLabel} />
       <Form.TextField id="label" title="ラベル" placeholder="省略すると番号になる" value={label} onChange={setLabel} />
       <Form.Description text="作成したtabにフォーカスする。ディレクトリはHerdrの new_cwd 設定に従う。" />
     </Form>
   );
 }
 
-export function RenameTabForm({ tab, onRenamed }: { tab: Tab; onRenamed: () => void }) {
+export function RenameTabForm({
+  tabId,
+  tabLabel,
+  onRenamed,
+}: {
+  tabId: string;
+  tabLabel: string;
+  onRenamed: () => void;
+}) {
   const { pop } = useNavigation();
-  const [label, setLabel] = useState(tab.label);
+  const [label, setLabel] = useState(tabLabel);
   const [error, setError] = useState<string | undefined>();
 
   async function submit() {
@@ -57,7 +72,7 @@ export function RenameTabForm({ tab, onRenamed }: { tab: Tab; onRenamed: () => v
     }
     const toast = await showToast({ style: Toast.Style.Animated, title: "変更中" });
     try {
-      await renameTab(tab.id, label.trim());
+      await renameTab(tabId, label.trim());
       toast.style = Toast.Style.Success;
       toast.title = "ラベルを変更しました";
       onRenamed();
@@ -82,7 +97,7 @@ export function RenameTabForm({ tab, onRenamed }: { tab: Tab; onRenamed: () => v
         </ActionPanel>
       }
     >
-      <Form.Description title="Tab" text={`${tab.label} (${tab.id})`} />
+      <Form.Description title="Tab" text={`Tab ${tabLabel}`} />
       <Form.TextField
         id="label"
         title="ラベル"

@@ -2,7 +2,7 @@ import { runJson, runText } from "./cli";
 import { request } from "./socket";
 import { focusAgent } from "./agent";
 import { readLines } from "./preferences";
-import { fetchSnapshot, Snapshot } from "./snapshot";
+import { Snapshot } from "./snapshot";
 import { AGENT_STATUSES, AgentStatus } from "./types";
 
 export type Tab = {
@@ -22,10 +22,8 @@ export type Pane = {
   workspaceId: string;
   /** rename で付けた表示名。未設定なら undefined。 */
   label?: string;
-  /** ANSI装飾と状態記号を除いたターミナルタイトル。 */
-  title: string;
-  /** 所属tabの表示名。flat表示でどのtabのpaneかを示すために持つ。 */
-  tabLabel?: string;
+  /** ANSI装飾と状態記号を除いたターミナルタイトル。素のpaneでは付かない。 */
+  title?: string;
   cwd: string;
   /** agentが居るpaneのみ。agent commands の可否を分ける。 */
   agent?: string;
@@ -57,14 +55,6 @@ type RawPane = {
   focused?: unknown;
 };
 
-export async function listTabs(workspaceId: string): Promise<Tab[]> {
-  return parseTabs(await fetchSnapshot(), workspaceId);
-}
-
-export async function listPanes(tabId: string): Promise<Pane[]> {
-  return parsePanes(await fetchSnapshot(), tabId);
-}
-
 export function parseTabs(source: Snapshot, workspaceId: string): Tab[] {
   const tabs = Array.isArray((source as { tabs?: unknown }).tabs)
     ? ((source as { tabs: unknown[] }).tabs.filter(isRecord<RawTab>) as RawTab[])
@@ -74,13 +64,6 @@ export function parseTabs(source: Snapshot, workspaceId: string): Tab[] {
     .map(toTab)
     .filter((tab): tab is Tab => tab !== undefined)
     .sort((a, b) => a.number - b.number);
-}
-
-/** workspace配下の全paneを、tabの番号順・pane ID順に並べて返す。 */
-export function parseWorkspacePanes(source: Snapshot, workspaceId: string): Pane[] {
-  return parseTabs(source, workspaceId).flatMap((tab) =>
-    parsePanes(source, tab.id).map((pane) => ({ ...pane, tabLabel: tab.label })),
-  );
 }
 
 export function parsePanes(source: Snapshot, tabId: string): Pane[] {
@@ -113,13 +96,13 @@ function toPane(raw: RawPane): Pane | undefined {
   if (!id) {
     return undefined;
   }
-  const title = asString(raw.terminal_title_stripped) ?? asString(raw.terminal_title) ?? id;
+  const title = asString(raw.terminal_title_stripped) ?? asString(raw.terminal_title);
   return {
     id,
     tabId: asString(raw.tab_id) ?? "",
     workspaceId: asString(raw.workspace_id) ?? "",
     label: asString(raw.label),
-    title: title.trim().length > 0 ? title.trim() : id,
+    title: title?.trim() || undefined,
     cwd: asString(raw.foreground_cwd) ?? asString(raw.cwd) ?? "",
     agent: asString(raw.agent),
     status: toStatus(raw.agent_status),
@@ -183,6 +166,49 @@ const MAX_FOCUS_STEPS = 8;
  * workspace と tab を辿ってから pane を指す。pane は CLI に ID 指定のフォーカスが無いため、
  * ソケットAPIの pane.focus を直接呼ぶ。届かない場合だけ、従来の隣接移動へ落とす。
  */
+/**
+ * タイトルを持たないpaneに、動いているプロセス名を補う。
+ * 素のpaneにはterminal_titleが付かず、そのままではpane IDしか出せないため。
+ */
+export async function withProcessNames(panes: Pane[]): Promise<Pane[]> {
+  const named = await Promise.all(
+    panes.map(async (pane) => {
+      if (pane.title) {
+        return pane;
+      }
+      try {
+        const result = await runJson<{ process_info?: unknown }>(["pane", "process-info", "--pane", pane.id]);
+        return { ...pane, title: parseProcessName(result.process_info) };
+      } catch {
+        return pane;
+      }
+    }),
+  );
+  return named;
+}
+
+export function parseProcessName(source: unknown): string | undefined {
+  if (typeof source !== "object" || source === null) {
+    return undefined;
+  }
+  const processes = (source as { foreground_processes?: unknown }).foreground_processes;
+  if (!Array.isArray(processes)) {
+    return undefined;
+  }
+  for (const process of processes) {
+    if (typeof process !== "object" || process === null) {
+      continue;
+    }
+    const raw = process as { name?: unknown; argv0?: unknown };
+    // ログインシェルは argv0 が "-zsh" になるので、先頭のハイフンを落とす。
+    const name = asString(raw.name) ?? asString(raw.argv0)?.replace(/^-/, "");
+    if (name) {
+      return name;
+    }
+  }
+  return undefined;
+}
+
 export async function focusPane(pane: Pane): Promise<void> {
   await focusPaneTarget(pane);
 }

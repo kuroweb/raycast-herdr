@@ -57,30 +57,24 @@ Open Herdr で新規ウィンドウを開けるのは Terminal.app と iTerm2。
 - `⌘M` でプロンプトを送る。送信の成否だけを見て返り、agent の応答完了は待たない。agent が blocked のときは Herdr 側で拒否されるので、ターミナルで承認を返してから送る。
 - `⌘O` でターミナル出力をプレビューする。開いた時点のスナップショットで、`⌘R` で取り直す。
 - `⌘E` で agent 名を付ける。`[a-z][a-z0-9_-]{0,31}` かつ live agent 間で一意。名前の解除もこの画面から行う。
-- `⌘⇧C` で pane ID をコピーする。`herdr agent ...` を手で叩くときの target になる。
+- `⌘⇧C` で pane ID をコピーする。画面には出さないが、`herdr agent ...` を手で叩くときの target になる。
 - 稼働中の agent が無いとき、`herdr` が見つからないとき、サーバに届かないときで、それぞれ別の案内を出す。
 
 ### Spaces
 
-- workspace を見出し、その配下の pane を行にした flat な一覧。階層を降りなくても、動いているものが1画面で見渡せる。
-- 見出しは workspace のラベルと代表ディレクトリ。行は pane のラベル（未設定ならターミナルタイトル）で、所属 tab と pane ID をアクセサリに出す。
-- agent が居る pane は状態つきで、素の pane はターミナルアイコンで表示する。
-- 並びは workspace の番号順、その中は tab の番号順 → pane ID 順。TUI での並びと一致させている。
-- pane に対する操作:
-  - `⏎` フォーカス、`⌘O` 出力を見る、`⌘E` ラベル変更、`⌃X` クローズ（確認あり）
-  - `⌘D` 右に分割、`⌘⇧D` 下に分割、`⌘Z` ズームの切り替え
-- 所属 workspace に対する操作（行のアクションパネルの Workspace セクション）:
-  - `→` tab 一覧へ、`⌘N` 作成、`⌘⇧E` ラベル変更、`⌘⇧X` クローズ（確認あり）
+- workspace・tab・pane を1本のリストに流した一覧。階層を降りる画面は無く、動いているものがここで全部見える。
+- 並び順そのものが階層を表す。workspace の行の下にその tab、tab の行の下にその pane が続く。workspace ごとにセクションで区切る。見出しには代表ディレクトリを置く。Raycast のセクションは見出しの文字が無いと区切りとして描かれず、workspace 名を置くと直下の行と重複するため。
+- アイコンの**形**が種別（workspace はグリッド、tab はリスト、pane はウィンドウ）、**色**と右端のタグが状態。形と文字で役割を分けて、構造と状態を同時に読めるようにする。
+- agent が居ない行には状態が無いので、アイコンを灰色にしてタグを出さない。
+- 並びは workspace の番号順、その中は tab の番号順、さらに pane ID 順。TUI での並びと一致させている。
+- 行の名前は ラベル → ターミナルタイトル → 動いているプロセス名 の順で決める。`wE:p1` のような内部 ID は画面に出さない。素の pane には `terminal_title` が付かないため、タイトルの無い pane にだけ `herdr pane process-info` を引いてプロセス名（`zsh`、`npm` など）を補う。
+- どの行も操作するのは**その行の階層だけ**。キーは階層をまたいで共通で、対象だけが変わる。
+  - 共通: `⏎` フォーカス、`⌘N` 作成、`⌘E` ラベル変更、`⌃X` クローズ（確認あり）
+  - pane のみ: `⌘O` 出力を見る、`⌘D` 右に分割、`⌘⇧D` 下に分割、`⌘Z` ズームの切り替え、`⌘⇧C` pane ID のコピー
 - 一覧は `herdr api snapshot` から作る。workspace 自体は cwd を持たないので、配下 pane の最頻ディレクトリを代表として表示している。
 - pane のフォーカスは workspace → tab → pane の順に辿る。pane だけは CLI に ID 指定のフォーカスが無いため、ソケット API の `pane.focus` を直接呼ぶ。失敗したときだけ、agent なら `agent focus`、素の pane なら `pane layout` の座標を見た隣接移動（最大8手）に落とす。
 - フォーカス後のターミナル前面化は `/usr/bin/open -a` で行い、**Raycast のウィンドウを閉じる前**に呼ぶ。閉じたあとだと Raycast がコマンドの実行を打ち切り、前面化が走らないまま終わることがある。Raycast はフォーカスを失うと自分で閉じるので、この順でも取り残されない。
 - `open -a` を使うのは、LaunchServices 経由で macOS の自動化の許可が要らないため。失敗したときだけ AppleScript の `activate` にフォールバックする。
-
-#### Tab 一覧（`→` で降りる）
-
-- workspace 配下の tab を番号順に一覧する。tab 単位の作成とクローズはこちらで行う。
-- `⏎` フォーカス、`→` pane 一覧へ、`←` 戻る、`⌘N` 作成、`⌘E` ラベル変更、`⌃X` クローズ（確認あり）。
-- pane 一覧は flat 表示と同じ行で、`←` で tab 一覧に戻る。
 
 ### Agent Status
 
@@ -161,7 +155,7 @@ npm run test:watch
 src/
   herdr/        herdr CLI の実行・応答パース・状態の表示規則・設定の解決・ターミナル起動
   agents/       Agents コマンドの一覧項目と、プロンプト・リネーム・出力の各画面
-  spaces/       Spaces コマンドの workspace / tab / pane の一覧と、作成・ラベル変更の各画面
+  spaces/       Spaces コマンドの workspace / tab / pane の各行と、作成・ラベル変更の各画面
   components/   agentのpaneと素のpaneで共有するターミナル出力の表示
   *.tsx         package.json の commands に対応するエントリポイント
 ```

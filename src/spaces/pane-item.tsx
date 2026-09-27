@@ -1,6 +1,18 @@
-import { Action, ActionPanel, Alert, confirmAlert, Icon, Keyboard, List, showToast, Toast } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Alert,
+  Color,
+  confirmAlert,
+  Icon,
+  Image,
+  Keyboard,
+  List,
+  showToast,
+  Toast,
+} from "@raycast/api";
 import { closePane, focusPane, Pane, readPaneOutput, splitPane, toggleZoom } from "../herdr/layout";
-import { presentation } from "../herdr/status";
+import { ENTITY_ICON, presentation } from "../herdr/status";
 import { describeError } from "../herdr/errors";
 import { revealTerminal } from "../herdr/terminal";
 import { shortenPath } from "../herdr/workspace";
@@ -10,13 +22,12 @@ import { RenamePaneForm } from "./pane-forms";
 type Props = {
   pane: Pane;
   onRefresh: () => void;
-  /** 一覧ごとに違う文脈の操作（workspace操作や「戻る」）を足すための差し込み口。 */
-  extraSections?: ActionPanel.Children;
   /** flat表示ではworkspaceが見出しになるので、行のディレクトリ表示を省く。 */
   showDirectory?: boolean;
 };
 
-export function PaneItem({ pane, onRefresh, extraSections, showDirectory = true }: Props) {
+export function PaneItem({ pane, onRefresh, showDirectory = true }: Props) {
+  const title = paneTitle(pane);
   const status = presentation(pane.status);
 
   async function run(action: () => Promise<void>, failureTitle: string, reveal = false) {
@@ -33,7 +44,7 @@ export function PaneItem({ pane, onRefresh, extraSections, showDirectory = true 
 
   async function close() {
     const confirmed = await confirmAlert({
-      title: `${pane.label ?? pane.title} を閉じますか`,
+      title: `${title} を閉じますか`,
       message: pane.agent ? "このpaneで動いているagentも終了します。" : undefined,
       icon: Icon.Trash,
       primaryAction: { title: "閉じる", style: Alert.ActionStyle.Destructive },
@@ -45,22 +56,17 @@ export function PaneItem({ pane, onRefresh, extraSections, showDirectory = true 
 
   return (
     <List.Item
-      icon={{ source: pane.agent ? status.icon : Icon.Terminal, tintColor: pane.agent ? status.color : undefined }}
-      title={pane.label ?? pane.title}
+      icon={iconOf(pane)}
+      title={title}
       subtitle={showDirectory && pane.cwd.length > 0 ? shortenPath(pane.cwd) : undefined}
-      keywords={[pane.id, pane.cwd, pane.agent ?? "", pane.tabLabel ?? ""]}
-      accessories={[
-        ...(pane.focused ? [{ icon: Icon.Eye, tooltip: "フォーカス中" }] : []),
-        ...(pane.agent ? [{ tag: { value: status.label, color: status.color } }] : []),
-        ...(pane.tabLabel ? [{ text: `tab ${pane.tabLabel}`, tooltip: pane.tabId }] : []),
-        { text: pane.id },
-      ]}
+      keywords={[pane.id, pane.cwd, pane.agent ?? ""]}
+      accessories={accessoriesOf(pane)}
       actions={
         <ActionPanel>
-          <ActionPanel.Section>
+          <ActionPanel.Section title={`Pane: ${title}`}>
             <Action
               title="フォーカス"
-              icon={Icon.Window}
+              icon={ENTITY_ICON.pane}
               onAction={() => run(() => focusPane(pane), "フォーカスできません", true)}
             />
             <Action.Push
@@ -69,12 +75,11 @@ export function PaneItem({ pane, onRefresh, extraSections, showDirectory = true 
               shortcut={Keyboard.Shortcut.Common.Open}
               target={
                 <TerminalOutput
-                  navigationTitle={pane.label ?? pane.title}
+                  navigationTitle={title}
                   target={pane.id}
                   read={readPaneOutput}
                   status={pane.agent ? { label: status.label, color: status.color } : undefined}
                   rows={[
-                    { title: "Pane", text: pane.id },
                     { title: "Agent", text: pane.agent ?? "なし" },
                     { title: "Directory", text: pane.cwd },
                   ]}
@@ -83,7 +88,7 @@ export function PaneItem({ pane, onRefresh, extraSections, showDirectory = true 
             />
             <Action.Push
               title="ラベルを変更"
-              icon={Icon.Pencil}
+              icon={ENTITY_ICON.pane}
               shortcut={Keyboard.Shortcut.Common.Edit}
               target={<RenamePaneForm pane={pane} onRenamed={onRefresh} />}
             />
@@ -111,13 +116,12 @@ export function PaneItem({ pane, onRefresh, extraSections, showDirectory = true 
           <ActionPanel.Section>
             <Action
               title="Paneを閉じる"
-              icon={Icon.Trash}
+              icon={ENTITY_ICON.pane}
               style={Action.Style.Destructive}
               shortcut={Keyboard.Shortcut.Common.Remove}
               onAction={close}
             />
           </ActionPanel.Section>
-          {extraSections}
           <ActionPanel.Section>
             <Action.CopyToClipboard
               title="Pane IDをコピー"
@@ -135,4 +139,24 @@ export function PaneItem({ pane, onRefresh, extraSections, showDirectory = true 
       }
     />
   );
+}
+
+/** ラベル → ターミナルタイトル → プロセス名 の順で、内部IDは使わない。 */
+function paneTitle(pane: Pane): string {
+  return pane.label ?? pane.title ?? "シェル";
+}
+
+/** 形は種別（pane）、色は状態。agentが居ないpaneに状態は無いので灰色にする。 */
+function iconOf(pane: Pane): Image.ImageLike {
+  const status = presentation(pane.status);
+  return { source: ENTITY_ICON.pane, tintColor: pane.agent ? status.color : Color.SecondaryText };
+}
+
+/** 右端は フォーカス中 → 状態。種別はアイコンの形で出すので、タグは状態に使う。 */
+function accessoriesOf(pane: Pane): List.Item.Accessory[] {
+  const status = presentation(pane.status);
+  return [
+    ...(pane.focused ? [{ icon: Icon.Eye, tooltip: "フォーカス中" }] : []),
+    ...(pane.agent ? [{ tag: { value: status.label, color: status.color } }] : []),
+  ];
 }
