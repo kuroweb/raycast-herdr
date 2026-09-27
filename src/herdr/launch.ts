@@ -78,3 +78,35 @@ function osascript(script: string): Promise<void> {
 export function isSupportedTerminal(app: Application | undefined): boolean {
   return newWindowScript(app?.bundleId ?? TERMINAL_BUNDLE_ID, "true") !== undefined;
 }
+
+/**
+ * ターミナルを前面に出し、キーボード入力も渡す。
+ * 既定は /usr/bin/open -a。LaunchServices 経由なので自動化の許可が要らず、
+ * 許可未設定の環境でも確実に前面化できる。失敗したときだけ AppleScript の activate を試す。
+ */
+export async function activateTerminal(): Promise<void> {
+  const app = terminalApp();
+  if (!app) {
+    return;
+  }
+  try {
+    await openApp(app.path);
+  } catch (error) {
+    if (!app.bundleId) {
+      throw error;
+    }
+    await osascript(`tell application id ${appleScriptString(app.bundleId)} to activate`);
+  }
+}
+
+function openApp(path: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    execFile("/usr/bin/open", ["-a", path], { timeout: 10_000 }, (error, _stdout, stderr) => {
+      if (error) {
+        reject(new Error(stderr.trim() || error.message));
+        return;
+      }
+      resolve();
+    });
+  });
+}

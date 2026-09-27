@@ -35,7 +35,7 @@ export function AgentListItem({ agent, onRefresh }: Props) {
               icon={Icon.Window}
               onAction={async () => {
                 try {
-                  await focusAgentAndReveal(agent.paneId);
+                  await focusAgentAndReveal(agent);
                 } catch (error) {
                   await showToast({
                     style: Toast.Style.Failure,

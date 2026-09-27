@@ -47,7 +47,7 @@ export default function Command() {
                 icon={{ source: presentation(agent.status).icon, tintColor: presentation(agent.status).color }}
                 title={agent.title}
                 subtitle={agent.name ?? agent.kind}
-                onAction={() => focusAgentAndReveal(agent.paneId)}
+                onAction={() => focusAgentAndReveal(agent)}
               />
             ))}
           </MenuBarExtra.Section>

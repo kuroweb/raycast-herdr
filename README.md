@@ -73,6 +73,8 @@ Open Herdr で新規ウィンドウを開けるのは Terminal.app と iTerm2。
   - `→` tab 一覧へ、`⌘N` 作成、`⌘⇧E` ラベル変更、`⌘⇧X` クローズ（確認あり）
 - 一覧は `herdr api snapshot` から作る。workspace 自体は cwd を持たないので、配下 pane の最頻ディレクトリを代表として表示している。
 - pane のフォーカスは workspace → tab → pane の順に辿る。pane だけは CLI に ID 指定のフォーカスが無いため、ソケット API の `pane.focus` を直接呼ぶ。失敗したときだけ、agent なら `agent focus`、素の pane なら `pane layout` の座標を見た隣接移動（最大8手）に落とす。
+- フォーカス後のターミナル前面化は `/usr/bin/open -a` で行い、**Raycast のウィンドウを閉じる前**に呼ぶ。閉じたあとだと Raycast がコマンドの実行を打ち切り、前面化が走らないまま終わることがある。Raycast はフォーカスを失うと自分で閉じるので、この順でも取り残されない。
+- `open -a` を使うのは、LaunchServices 経由で macOS の自動化の許可が要らないため。失敗したときだけ AppleScript の `activate` にフォールバックする。
 
 #### Tab 一覧（`→` で降りる）
 
@@ -92,6 +94,7 @@ Open Herdr で新規ウィンドウを開けるのは Terminal.app と iTerm2。
 
 - ターミナルの新規ウィンドウで `herdr` を実行する。bare `herdr` は既存セッションがあれば attach するので、起動と復帰を1つの操作で兼ねる。
 - 新規ウィンドウを AppleScript で開けるのは Terminal.app と iTerm2。未対応のターミナルでは前面化だけ行い、その旨を通知する。
+- AppleScript でウィンドウを作るため、初回は macOS が「Raycast がターミナルを操作しようとしています」と許可を求める。許可しないとこのコマンドだけ失敗する（フォーカスの前面化は `open -a` なので影響しない）。
 - 起動は `/bin/sh -lc` 経由。ログインシェルを通すのは、Herdr が前提にする環境変数を引き継ぐため。
 - すでに attach 済みのウィンドウがあっても、新しいウィンドウを開く。Herdr の TUI クライアントは複数同時に動く。
 
