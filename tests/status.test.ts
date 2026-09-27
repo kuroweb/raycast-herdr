@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { attentionCount, dominantStatus, groupByStatus, sortAgents } from "../src/herdr/status";
+import { agentIcon, attentionCount, dominantStatus, ENTITY_ICON, groupByStatus, sortAgents } from "../src/herdr/status";
+import { Color } from "@raycast/api";
 import { Agent, AgentStatus } from "../src/herdr/types";
 
 function agent(status: AgentStatus, title: string): Agent {
@@ -68,5 +69,48 @@ describe("groupByStatus", () => {
       ["done", 1],
       ["idle", 2],
     ]);
+  });
+});
+
+describe("agentIcon", () => {
+  it("種別ごとに違うアイコンを返す", () => {
+    expect(agentIcon("codex", Color.Orange)).not.toEqual(agentIcon("gemini", Color.Orange));
+  });
+
+  it("ロゴを持つ種別は色を塗らずそのまま返す", () => {
+    expect(agentIcon("claude", Color.Orange)).toEqual({ source: "agent-claude.png" });
+  });
+
+  it("大文字小文字を無視する", () => {
+    expect(agentIcon("Codex", Color.Orange)).toEqual(agentIcon("codex", Color.Orange));
+  });
+
+  it("未知の種別は共通のagentアイコンに状態色を乗せる", () => {
+    expect(agentIcon("unknown-agent", Color.Orange)).toEqual({
+      source: ENTITY_ICON.agent,
+      tintColor: Color.Orange,
+    });
+  });
+});
+
+describe("agentIcon の網羅", () => {
+  // herdr agent start --kind が受け付ける種別。全部にアイコンを割り当てておく。
+  const kinds = [
+    "pi", "claude", "codex", "gemini", "cursor", "devin", "agy", "cline", "omp", "mastracode",
+    "opencode", "copilot", "kimi", "kiro", "droid", "amp", "grok", "hermes", "kilo", "qodercli",
+    "qwen", "letta", "maki", "muse",
+  ];
+
+  it("既知の種別はすべて共通アイコン以外に解決する", () => {
+    const fallback = kinds.filter((kind) => {
+      const icon = agentIcon(kind, Color.Orange);
+      return "source" in icon && icon.source === ENTITY_ICON.agent;
+    });
+    expect(fallback).toEqual([]);
+  });
+
+  it("同じアイコンを2つの種別に使わない", () => {
+    const sources = kinds.map((kind) => JSON.stringify(agentIcon(kind, Color.Orange)));
+    expect(new Set(sources).size).toBe(kinds.length);
   });
 });

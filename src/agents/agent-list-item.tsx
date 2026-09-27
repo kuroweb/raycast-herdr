@@ -1,7 +1,7 @@
-import { basename } from "node:path";
 import { Action, ActionPanel, Icon, Keyboard, List, showToast, Toast } from "@raycast/api";
 import { Agent } from "../herdr/types";
-import { presentation } from "../herdr/status";
+import { agentIcon, ENTITY_ICON, presentation } from "../herdr/status";
+import { shortenPath } from "../herdr/workspace";
 import { describeError } from "../herdr/errors";
 import { focusAgentAndReveal } from "../herdr/terminal";
 import { AgentOutput } from "./output-detail";
@@ -18,21 +18,22 @@ export function AgentListItem({ agent, onRefresh }: Props) {
 
   return (
     <List.Item
-      icon={{ source: status.icon, tintColor: status.color }}
+      icon={agentIcon(agent.kind, status.color)}
       title={agent.title}
-      subtitle={agent.cwd.length > 0 ? basename(agent.cwd) : undefined}
+      subtitle={agent.cwd.length > 0 ? shortenPath(agent.cwd) : undefined}
       keywords={[agent.paneId, agent.cwd, agent.kind, agent.name ?? ""]}
       accessories={[
         ...(agent.focused ? [{ icon: Icon.Eye, tooltip: "フォーカス中" }] : []),
         { tag: { value: status.label, color: status.color } },
-        { text: agent.name ?? agent.kind, tooltip: agent.cwd },
+        // 種別はアイコンで分かるので出さない。付け替えた名前だけは他に出る場所が無いので残す。
+        ...(agent.name ? [{ text: agent.name }] : []),
       ]}
       actions={
         <ActionPanel>
-          <ActionPanel.Section>
+          <ActionPanel.Section title={`Agent: ${agent.name ?? agent.kind}`}>
             <Action
               title="フォーカス"
-              icon={Icon.Window}
+              icon={ENTITY_ICON.agent}
               onAction={async () => {
                 try {
                   await focusAgentAndReveal(agent);
@@ -47,19 +48,19 @@ export function AgentListItem({ agent, onRefresh }: Props) {
             />
             <Action.Push
               title="プロンプトを送信"
-              icon={Icon.Message}
+              icon={ENTITY_ICON.agent}
               shortcut={{ modifiers: ["cmd"], key: "m" }}
-              target={<PromptForm agent={agent} onSubmitted={onRefresh} />}
+              target={<PromptForm target={agent.paneId} title={agent.title} cwd={agent.cwd} onSubmitted={onRefresh} />}
             />
             <Action.Push
               title="出力を見る"
-              icon={Icon.Text}
+              icon={ENTITY_ICON.agent}
               shortcut={Keyboard.Shortcut.Common.Open}
               target={<AgentOutput agent={agent} />}
             />
             <Action.Push
               title="名前を変更"
-              icon={Icon.Pencil}
+              icon={ENTITY_ICON.agent}
               shortcut={Keyboard.Shortcut.Common.Edit}
               target={<RenameForm agent={agent} onRenamed={onRefresh} />}
             />

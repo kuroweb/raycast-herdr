@@ -1,4 +1,4 @@
-import { Color, Icon } from "@raycast/api";
+import { Color, Icon, Image } from "@raycast/api";
 import { Agent, AgentStatus } from "./types";
 
 type StatusPresentation = {
@@ -19,12 +19,58 @@ const PRESENTATION: Record<AgentStatus, StatusPresentation> = {
   unknown: { label: "Unknown", icon: Icon.QuestionMark, color: Color.SecondaryText, weight: 4, needsAttention: false },
 };
 
-/** workspace / tab / pane を形で区別する。状態は同じアイコンの色で表す。 */
+/** workspace / tab / pane / agent を形で区別する。状態は同じアイコンの色で表す。 */
 export const ENTITY_ICON = {
   workspace: Icon.AppWindowGrid2x2,
   tab: Icon.AppWindowList,
   pane: Icon.AppWindow,
+  /** agentに対する操作。種別ごとの区別が要らない場面で使う。 */
+  agent: Icon.MemoryChip,
+  /** agentが動いていないpane。中身はシェルなので、そう見える形にする。 */
+  shell: Icon.Terminal,
 } as const;
+
+/**
+ * agent種別ごとのアイコン。
+ * ロゴが手元にあるものはロゴを使い、無いものは種別が違えば形が違う、という区別に徹する。
+ */
+const AGENT_KIND_ICON: Record<string, Image.ImageLike> = {
+  // ロゴが手元のアプリから取れるもの
+  claude: { source: "agent-claude.png" },
+  codex: { source: "agent-codex.png" },
+  cursor: { source: "agent-cursor.png" },
+  // 以降は herdr agent start --kind が受け付ける種別。形が重ならないように割り当てる。
+  agy: Icon.Anchor,
+  amp: Icon.Bolt,
+  cline: Icon.CodeBlock,
+  copilot: Icon.Airplane,
+  devin: Icon.Hammer,
+  droid: Icon.Cog,
+  gemini: Icon.Stars,
+  grok: Icon.Wand,
+  hermes: Icon.Envelope,
+  kilo: Icon.Gauge,
+  kimi: Icon.Moon,
+  kiro: Icon.Leaf,
+  letta: Icon.Bookmark,
+  maki: Icon.CircleFilled,
+  mastracode: Icon.Book,
+  muse: Icon.Brush,
+  omp: Icon.Box,
+  opencode: Icon.Terminal,
+  pi: Icon.Calculator,
+  qodercli: Icon.Code,
+  qwen: Icon.Globe,
+};
+
+/**
+ * 状態の色は形の上に乗せる。ただしロゴは色を塗ると別物になるので、そのまま出す。
+ * その場合の状態は右端のタグで読む。
+ */
+export function agentIcon(kind: string, color: Color): Image.ImageLike {
+  const icon = AGENT_KIND_ICON[kind.toLowerCase()] ?? ENTITY_ICON.agent;
+  return typeof icon === "object" ? icon : { source: icon, tintColor: color };
+}
 
 export function presentation(status: AgentStatus): StatusPresentation {
   return PRESENTATION[status];
