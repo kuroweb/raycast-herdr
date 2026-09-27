@@ -38,6 +38,7 @@ export function RenameForm({ agent, onRenamed }: Props) {
         <ActionPanel>
           <Action.SubmitForm
             title="名前を設定"
+            shortcut={{ modifiers: ["cmd"], key: "return" }}
             icon={Icon.Pencil}
             onSubmit={() => {
               if (!NAME_PATTERN.test(name)) {

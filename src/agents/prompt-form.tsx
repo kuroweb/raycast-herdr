@@ -37,7 +37,12 @@ export function PromptForm({ agent, onSubmitted }: Props) {
     <Form
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="送信" icon={Icon.Message} onSubmit={submit} />
+          <Action.SubmitForm
+            shortcut={{ modifiers: ["cmd"], key: "return" }}
+            title="送信"
+            icon={Icon.Message}
+            onSubmit={submit}
+          />
         </ActionPanel>
       }
     >
