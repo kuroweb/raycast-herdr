@@ -1,4 +1,4 @@
-import { runJson, runText } from "./cli";
+import { runJson, runText, runVoid } from "./cli";
 import { request } from "./socket";
 import { focusAgent } from "./agent";
 import { readLines } from "./preferences";
@@ -330,7 +330,7 @@ export async function toggleZoom(paneId: string): Promise<void> {
 
 /** 自由記述の回答に使う。送るのは文字だけで、確定は別途 enter を送る。 */
 export async function sendPaneText(paneId: string, text: string): Promise<void> {
-  await runJson(["pane", "send-text", paneId, text]);
+  await runVoid(["pane", "send-text", paneId, text]);
 }
 
 export async function readPaneOutput(paneId: string): Promise<string> {

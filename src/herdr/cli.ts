@@ -32,6 +32,19 @@ export async function runText(args: string[]): Promise<string> {
   throw unexpected(stdout, stderr, code);
 }
 
+/** 成功時に出力しない操作コマンドを実行する。失敗時のJSONエンベロープは従来どおり解釈する。 */
+export async function runVoid(args: string[]): Promise<void> {
+  const { stdout, stderr, code } = await exec(args);
+  const envelope = tryParseEnvelope(stdout);
+
+  if (envelope?.error) {
+    throw new HerdrCliError(envelope.error.code ?? "unknown_error", envelope.error.message ?? "herdr command failed");
+  }
+  if (code !== 0 || (stdout.trim().length > 0 && (!envelope || envelope.result === undefined))) {
+    throw unexpected(stdout, stderr, code);
+  }
+}
+
 type Envelope = { result?: unknown; error?: { code?: string; message?: string } };
 
 function tryParseEnvelope(stdout: string): Envelope | undefined {

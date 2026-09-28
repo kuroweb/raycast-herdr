@@ -1,4 +1,4 @@
-import { runJson, runText } from "./cli";
+import { runJson, runText, runVoid } from "./cli";
 import { readLines } from "./preferences";
 import { AGENT_STATUSES, Agent, AgentStatus } from "./types";
 
@@ -86,7 +86,7 @@ export async function clearAgentName(target: string): Promise<void> {
 
 /** 承認や質問への応答。キー名は herdr の語彙（esc, enter, up, down, 数字 など）。 */
 export async function sendAgentKeys(target: string, keys: string[]): Promise<void> {
-  await runJson(["agent", "send-keys", target, ...keys]);
+  await runVoid(["agent", "send-keys", target, ...keys]);
 }
 
 /**

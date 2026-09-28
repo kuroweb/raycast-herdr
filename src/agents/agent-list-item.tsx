@@ -7,7 +7,7 @@ import { focusAgentAndReveal } from "../herdr/terminal";
 import { closePane } from "../herdr/layout";
 import { AgentOutput } from "./output-detail";
 import { PromptForm } from "./prompt-form";
-import { RespondView } from "./respond";
+import { RespondView, ResponseActionSections } from "./respond";
 import { RenameForm } from "./rename-form";
 
 type Props = {
@@ -67,7 +67,7 @@ export function AgentListItem({ agent, onRefresh }: Props) {
               }}
             />
             <Action.Push
-              title="応答する"
+              title="応答内容を見る"
               icon={Icon.Reply}
               shortcut={Keyboard.Shortcut.Common.ToggleQuickLook}
               target={<RespondView target={agent.paneId} title={agent.title} />}
@@ -91,6 +91,7 @@ export function AgentListItem({ agent, onRefresh }: Props) {
               target={<RenameForm agent={agent} onRenamed={onRefresh} />}
             />
           </ActionPanel.Section>
+          <ResponseActionSections target={agent.paneId} onSent={onRefresh} />
           <ActionPanel.Section>
             <Action
               title="Paneを閉じる"

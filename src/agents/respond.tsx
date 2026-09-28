@@ -13,6 +13,11 @@ type Props = {
   title: string;
 };
 
+type ResponseActionsProps = {
+  target: string;
+  onSent: () => void;
+};
+
 /**
  * 承認や選択肢への応答をRaycastから返す。
  * agentが止まっているのは入力待ちのときなので、何を聞かれているかを出したまま
@@ -27,16 +32,6 @@ export function RespondView({ target, title }: Props) {
     return () => clearInterval(timer);
   }, [revalidate]);
 
-  async function send(keys: string[], label: string) {
-    try {
-      await sendAgentKeys(target, keys);
-      await showToast({ style: Toast.Style.Success, title: `${label} を送りました` });
-      revalidate();
-    } catch (cause) {
-      await showToast({ style: Toast.Style.Failure, title: "送れません", message: describeError(cause) });
-    }
-  }
-
   const body = error ? `**読み込めません**\n\n${describeError(error)}` : toCodeBlock(data ?? "");
 
   return (
@@ -46,40 +41,8 @@ export function RespondView({ target, title }: Props) {
       markdown={body}
       actions={
         <ActionPanel>
-          <ActionPanel.Section title="応答">
-            <Action title="決定（Enter）" icon={Icon.Check} onAction={() => send(["enter"], "Enter")} />
-            <Action title="取り消し（Esc）" icon={Icon.XMarkCircle} onAction={() => send(["esc"], "Esc")} />
-            <Action
-              title="上の選択肢へ"
-              icon={Icon.ArrowUp}
-              shortcut={{ modifiers: ["cmd"], key: "arrowUp" }}
-              onAction={() => send(["up"], "↑")}
-            />
-            <Action
-              title="下の選択肢へ"
-              icon={Icon.ArrowDown}
-              shortcut={{ modifiers: ["cmd"], key: "arrowDown" }}
-              onAction={() => send(["down"], "↓")}
-            />
-          </ActionPanel.Section>
-          <ActionPanel.Section title="番号で選ぶ">
-            {["1", "2", "3", "4", "5"].map((key) => (
-              <Action
-                key={key}
-                title={`${key} を選ぶ`}
-                icon={Icon.Hashtag}
-                shortcut={{ modifiers: ["cmd"], key: key as Keyboard.KeyEquivalent }}
-                onAction={() => send([key], key)}
-              />
-            ))}
-          </ActionPanel.Section>
+          <ResponseActionSections target={target} onSent={revalidate} />
           <ActionPanel.Section>
-            <Action.Push
-              title="文章で答える"
-              icon={Icon.Text}
-              shortcut={{ modifiers: ["cmd"], key: "t" }}
-              target={<AnswerForm target={target} onSent={revalidate} />}
-            />
             <Action
               title="再読み込み"
               icon={Icon.ArrowClockwise}
@@ -90,6 +53,70 @@ export function RespondView({ target, title }: Props) {
         </ActionPanel>
       }
     />
+  );
+}
+
+/** 一覧と応答画面のどちらからでも、同じキー操作をagentへ送れるようにする。 */
+export function ResponseActionSections({ target, onSent }: ResponseActionsProps) {
+  async function send(keys: string[], label: string) {
+    try {
+      await sendAgentKeys(target, keys);
+      await showToast({ style: Toast.Style.Success, title: `${label} を送りました` });
+      onSent();
+    } catch (cause) {
+      await showToast({ style: Toast.Style.Failure, title: "送れません", message: describeError(cause) });
+    }
+  }
+
+  return (
+    <>
+      <ActionPanel.Section title="応答">
+        <Action
+          title="決定（Enter）"
+          icon={Icon.Check}
+          shortcut={{ modifiers: ["shift"], key: "enter" }}
+          onAction={() => send(["enter"], "Enter")}
+        />
+        <Action
+          title="取り消し（Esc）"
+          icon={Icon.XMarkCircle}
+          shortcut={{ modifiers: ["shift"], key: "escape" }}
+          onAction={() => send(["esc"], "Esc")}
+        />
+        <Action
+          title="上の選択肢へ"
+          icon={Icon.ArrowUp}
+          shortcut={{ modifiers: ["shift"], key: "arrowUp" }}
+          onAction={() => send(["up"], "↑")}
+        />
+        <Action
+          title="下の選択肢へ"
+          icon={Icon.ArrowDown}
+          shortcut={{ modifiers: ["shift"], key: "arrowDown" }}
+          onAction={() => send(["down"], "↓")}
+        />
+        <Action
+          title="左の選択肢へ"
+          icon={Icon.ArrowLeft}
+          shortcut={{ modifiers: ["shift"], key: "arrowLeft" }}
+          onAction={() => send(["left"], "←")}
+        />
+        <Action
+          title="右の選択肢へ"
+          icon={Icon.ArrowRight}
+          shortcut={{ modifiers: ["shift"], key: "arrowRight" }}
+          onAction={() => send(["right"], "→")}
+        />
+      </ActionPanel.Section>
+      <ActionPanel.Section>
+        <Action.Push
+          title="文章で答える"
+          icon={Icon.Text}
+          shortcut={{ modifiers: ["cmd"], key: "t" }}
+          target={<AnswerForm target={target} onSent={onSent} />}
+        />
+      </ActionPanel.Section>
+    </>
   );
 }
 
