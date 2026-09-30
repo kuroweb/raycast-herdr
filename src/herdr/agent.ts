@@ -1,5 +1,4 @@
 import { runJson, runText, runVoid } from "./cli";
-import { readLines } from "./preferences";
 import { AGENT_STATUSES, Agent, AgentStatus } from "./types";
 
 type RawAgent = {
@@ -131,11 +130,6 @@ export async function sendAgentKeys(target: string, keys: string[]): Promise<voi
  */
 export async function readAgentDetection(target: string): Promise<string> {
   return runText(["agent", "read", target, "--source", "detection", "--format", "text"]);
-}
-
-export async function readAgentOutput(target: string): Promise<string> {
-  // JSONではなく生テキストが返る唯一の経路。
-  return runText(["agent", "read", target, "--source", "recent", "--lines", String(readLines()), "--format", "text"]);
 }
 
 export type ServerState = "running" | "stopped";

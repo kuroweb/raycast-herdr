@@ -79,14 +79,6 @@
       "description": "focus時に前面化し、Open HerdrでHerdrを起動するターミナルアプリ。未設定ならTerminalを使う。",
       "type": "appPicker",
       "required": false
-    },
-    {
-      "name": "readLines",
-      "title": "Output Lines",
-      "description": "出力プレビューで読み込む行数。",
-      "type": "textfield",
-      "required": false,
-      "default": "200"
     }
   ],
   "dependencies": {

@@ -11,12 +11,11 @@ import {
   showToast,
   Toast,
 } from "@raycast/api";
-import { closePane, focusPane, Pane, readPaneOutput, splitPane, toggleZoom } from "../herdr/layout";
+import { closePane, focusPane, Pane, splitPane, toggleZoom } from "../herdr/layout";
 import { agentIcon, ENTITY_ICON, presentation } from "../herdr/status";
 import { describeError } from "../herdr/errors";
 import { revealTerminal } from "../herdr/terminal";
 import { shortenPath } from "../herdr/workspace";
-import { TerminalOutput } from "../components/terminal-output";
 import { RenamePaneForm } from "./pane-forms";
 import { PromptForm } from "../agents/prompt-form";
 import { RespondView } from "../agents/respond";
@@ -32,7 +31,6 @@ type Props = {
 
 export function PaneItem({ pane, tabLabel, onRefresh, extraSections }: Props) {
   const title = paneTitle(pane);
-  const status = presentation(pane.status);
 
   async function run(action: () => Promise<void>, failureTitle: string, reveal = false) {
     try {
@@ -73,28 +71,11 @@ export function PaneItem({ pane, tabLabel, onRefresh, extraSections }: Props) {
               icon={ENTITY_ICON.pane}
               onAction={() => run(() => focusPane(pane), "フォーカスできません", true)}
             />
-            <Action.Push
-              title="出力を見る"
-              icon={Icon.Text}
-              shortcut={Keyboard.Shortcut.Common.Open}
-              target={
-                <TerminalOutput
-                  navigationTitle={title}
-                  target={pane.id}
-                  read={readPaneOutput}
-                  status={pane.agent ? { label: status.label, color: status.color } : undefined}
-                  rows={[
-                    { title: "Agent", text: pane.agent ?? "なし" },
-                    { title: "Directory", text: pane.cwd },
-                  ]}
-                />
-              }
-            />
             {pane.agent ? (
               <Action.Push
                 title="応答する"
                 icon={Icon.Reply}
-                shortcut={Keyboard.Shortcut.Common.ToggleQuickLook}
+                shortcut={Keyboard.Shortcut.Common.Open}
                 target={<RespondView target={pane.id} title={title} />}
               />
             ) : null}
@@ -144,11 +125,6 @@ export function PaneItem({ pane, tabLabel, onRefresh, extraSections }: Props) {
           </ActionPanel.Section>
           {extraSections}
           <ActionPanel.Section>
-            <Action.CopyToClipboard
-              title="Pane IDをコピー"
-              content={pane.id}
-              shortcut={Keyboard.Shortcut.Common.Copy}
-            />
             <Action
               title="再読み込み"
               icon={Icon.ArrowClockwise}

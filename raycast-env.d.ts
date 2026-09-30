@@ -11,9 +11,7 @@ type ExtensionPreferences = {
   /** Herdr Binary - herdrコマンドの絶対パス。RaycastはログインシェルのPATHを継承しないため絶対パスが必要。 */
   "herdrPath": string,
   /** Terminal App - focus時に前面化し、Open HerdrでHerdrを起動するターミナルアプリ。未設定ならTerminalを使う。 */
-  "terminalApp"?: import("@raycast/api").Application,
-  /** Output Lines - 出力プレビューで読み込む行数。 */
-  "readLines": string
+  "terminalApp"?: import("@raycast/api").Application
 }
 
 /** Preferences accessible in all the extension's commands */

@@ -6,7 +6,6 @@ import { shortenPath } from "../herdr/workspace";
 import { describeError } from "../herdr/errors";
 import { focusAgentAndReveal } from "../herdr/terminal";
 import { closePane } from "../herdr/layout";
-import { AgentOutput } from "./output-detail";
 import { PromptForm } from "./prompt-form";
 import { RespondView, ResponseActionSections } from "./respond";
 import { RenameForm } from "./rename-form";
@@ -72,7 +71,7 @@ export function AgentListItem({ agent, onRefresh }: Props) {
             <Action.Push
               title="応答内容を見る"
               icon={Icon.Reply}
-              shortcut={Keyboard.Shortcut.Common.ToggleQuickLook}
+              shortcut={Keyboard.Shortcut.Common.Open}
               target={<RespondView target={agent.paneId} title={title} />}
             />
             <Action.Push
@@ -80,12 +79,6 @@ export function AgentListItem({ agent, onRefresh }: Props) {
               icon={ENTITY_ICON.agent}
               shortcut={{ modifiers: ["cmd"], key: "m" }}
               target={<PromptForm target={agent.paneId} title={title} cwd={agent.cwd} onSubmitted={onRefresh} />}
-            />
-            <Action.Push
-              title="出力を見る"
-              icon={ENTITY_ICON.agent}
-              shortcut={Keyboard.Shortcut.Common.Open}
-              target={<AgentOutput agent={agent} />}
             />
             <Action.Push
               title="タイトルを変更"
@@ -112,11 +105,10 @@ export function AgentListItem({ agent, onRefresh }: Props) {
           </ActionPanel.Section>
           <ActionPanel.Section>
             <Action.CopyToClipboard
-              title="Pane IDをコピー"
-              content={agent.paneId}
+              title="作業ディレクトリをコピー"
+              content={agent.cwd}
               shortcut={Keyboard.Shortcut.Common.Copy}
             />
-            <Action.CopyToClipboard title="作業ディレクトリをコピー" content={agent.cwd} />
             <Action
               title="再読み込み"
               icon={Icon.ArrowClockwise}

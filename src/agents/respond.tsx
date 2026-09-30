@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { Action, ActionPanel, Detail, Form, Icon, Keyboard, showToast, Toast, useNavigation } from "@raycast/api";
+import { useEffect } from "react";
+import { Action, ActionPanel, Detail, Icon, Keyboard, showToast, Toast } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { readAgentDetection, sendAgentKeys } from "../herdr/agent";
-import { sendPaneText } from "../herdr/layout";
 import { describeError } from "../herdr/errors";
 
 const REFRESH_INTERVAL_MS = 2_000;
@@ -108,69 +107,7 @@ export function ResponseActionSections({ target, onSent }: ResponseActionsProps)
           onAction={() => send(["right"], "→")}
         />
       </ActionPanel.Section>
-      <ActionPanel.Section>
-        <Action.Push
-          title="文章で答える"
-          icon={Icon.Text}
-          shortcut={{ modifiers: ["cmd"], key: "t" }}
-          target={<AnswerForm target={target} onSent={onSent} />}
-        />
-      </ActionPanel.Section>
     </>
-  );
-}
-
-/** 選択肢ではなく自由記述で聞かれたとき用。文字を送ってから確定する。 */
-function AnswerForm({ target, onSent }: { target: string; onSent: () => void }) {
-  const { pop } = useNavigation();
-  const [text, setText] = useState("");
-  const [error, setError] = useState<string | undefined>();
-
-  async function submit() {
-    if (text.trim().length === 0) {
-      setError("回答を入力してください");
-      return;
-    }
-    const toast = await showToast({ style: Toast.Style.Animated, title: "送信中" });
-    try {
-      await sendPaneText(target, text);
-      await sendAgentKeys(target, ["enter"]);
-      toast.style = Toast.Style.Success;
-      toast.title = "送信しました";
-      onSent();
-      pop();
-    } catch (cause) {
-      toast.style = Toast.Style.Failure;
-      toast.title = "送れません";
-      toast.message = describeError(cause);
-    }
-  }
-
-  return (
-    <Form
-      actions={
-        <ActionPanel>
-          <Action.SubmitForm
-            title="送信"
-            icon={Icon.Text}
-            shortcut={{ modifiers: ["cmd"], key: "return" }}
-            onSubmit={submit}
-          />
-        </ActionPanel>
-      }
-    >
-      <Form.TextArea
-        id="answer"
-        title="回答"
-        placeholder="そのまま入力され、最後に Enter が送られる"
-        value={text}
-        error={error}
-        onChange={(value) => {
-          setText(value);
-          setError(undefined);
-        }}
-      />
-    </Form>
   );
 }
 

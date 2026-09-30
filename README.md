@@ -44,7 +44,6 @@ Open Herdr で新規ウィンドウを開けるのは Terminal.app と iTerm2。
 | --- | --- | --- |
 | Herdr Binary | `/opt/homebrew/bin/herdr` | `herdr` コマンドの絶対パス |
 | Terminal App | 未設定 | フォーカス時に前面化し、Open Herdr で起動するアプリ。未設定時は Terminal.app |
-| Output Lines | `200` | 出力プレビューで読む行数 |
 
 ## コマンド
 
@@ -58,11 +57,10 @@ Open Herdr で新規ウィンドウを開けるのは Terminal.app と iTerm2。
 - 種別のラベルは出さない（アイコンで分かるため）。`⌘⇧E` で付け替えた agent 名があるときだけ、タグの右に出す。
 - 開いている間は2秒ごとに状態を取り直す。状態は Herdr 側で変わるため、こちらから見に行く必要がある。
 - Enter でその agent にフォーカスし、Raycast を閉じてターミナルを前面化する。
+- `⌘O` で応答待ちの画面（`herdr agent read --source detection`）を出す。開いている間は2秒ごとに取り直すので、応答した結果がそのまま見える。`⇧⏎` 決定、`⇧Esc` 取り消し、`⇧↑↓←→` 選択肢の移動を、一覧からも応答画面からも同じキーで送れる。
 - `⌘M` でプロンプトを送る。送信の成否だけを見て返り、agent の応答完了は待たない。agent が blocked のときは Herdr 側で拒否されるので、ターミナルで承認を返してから送る。
-- `⌘O` でターミナル出力をプレビューする。開いた時点のスナップショットで、`⌘R` で取り直す。
 - `⌘E` で一覧に出るタイトルを変える。素のタイトルは agent が書き換えるターミナルタイトルなので、上書きには pane のラベル（`herdr pane rename`）を使う。解除するとターミナルタイトルに戻る。Spaces の行と同じ ラベル → ターミナルタイトル の順で決まる。
 - `⌘⇧E` で agent 名を付ける。`[a-z][a-z0-9_-]{0,31}` かつ live agent 間で一意。名前の解除もこの画面から行う。
-- `⌘⇧C` で pane ID をコピーする。画面には出さないが、`herdr agent ...` を手で叩くときの target になる。
 - 稼働中の agent が無いとき、`herdr` が見つからないとき、サーバに届かないときで、それぞれ別の案内を出す。
 
 ### Spaces
@@ -78,8 +76,8 @@ Open Herdr で新規ウィンドウを開けるのは Terminal.app と iTerm2。
   - pane（無印）: `⏎` フォーカス、`⌘E` ラベル変更、`⌃X` クローズ（確認あり）
   - tab（shift 付き）: `⌘⇧⏎` フォーカス、`⌘⇧N` 作成、`⌘⇧E` ラベル変更、`⌘⇧X` クローズ（確認あり）
   - workspace（opt 付き）: `⌘⌥N` 作成、`⌘⌥E` ラベル変更、`⌘⌥X` クローズ（確認あり）
-  - pane のみ: `⌘O` 出力を見る、`⌘D` 右に分割、`⌘⇧D` 下に分割、`⌘Z` ズームの切り替え、`⌘⇧C` pane ID のコピー
-  - agent が居る pane のみ: `⌘M` プロンプトを送信（Agents コマンドと同じキー）
+  - pane のみ: `⌘D` 右に分割、`⌘⇧D` 下に分割、`⌘Z` ズームの切り替え
+  - agent が居る pane のみ: `⌘O` 応答する、`⌘M` プロンプトを送信（どちらも Agents コマンドと同じキー）
 - 一覧は `herdr api snapshot` から作る。workspace 自体は cwd を持たないので、配下 pane の最頻ディレクトリを代表として表示している。
 - pane のフォーカスは workspace → tab → pane の順に辿る。pane だけは CLI に ID 指定のフォーカスが無いため、ソケット API の `pane.focus` を直接呼ぶ。失敗したときだけ、agent なら `agent focus`、素の pane なら `pane layout` の座標を見た隣接移動（最大8手）に落とす。
 - フォーカス後のターミナル前面化は `/usr/bin/open -a` で行い、**Raycast のウィンドウを閉じる前**に呼ぶ。閉じたあとだと Raycast がコマンドの実行を打ち切り、前面化が走らないまま終わることがある。Raycast はフォーカスを失うと自分で閉じるので、この順でも取り残されない。
@@ -119,7 +117,6 @@ Herdr の agent は idle / working / blocked / done / unknown の5状態。
 | フォーカス | `herdr agent focus <pane-id>` |
 | プロンプト送信 | `herdr agent prompt <pane-id> <text>` |
 | リネーム | `herdr agent rename <pane-id> <name>` / `--clear` |
-| 出力読み | `herdr agent read <pane-id> --source recent --lines N` |
 | サーバ確認 | `herdr status server` |
 | 起動・attach | `herdr`（ターミナルの新規ウィンドウで実行） |
 | workspace一覧 | `herdr api snapshot` |
@@ -163,9 +160,8 @@ npm run test:watch
 ```
 src/
   herdr/        herdr CLI の実行・応答パース・状態の表示規則・設定の解決・ターミナル起動
-  agents/       Agents コマンドの一覧項目と、プロンプト・リネーム・出力の各画面
+  agents/       Agents コマンドの一覧項目と、プロンプト・リネーム・応答の各画面
   spaces/       Spaces コマンドの pane 行、workspace / tab への操作、作成・ラベル変更の各画面
-  components/   agentのpaneと素のpaneで共有するターミナル出力の表示
   *.tsx         package.json の commands に対応するエントリポイント
 ```
 
