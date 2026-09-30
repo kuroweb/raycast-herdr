@@ -1,6 +1,6 @@
 import { Icon, MenuBarExtra, open, openCommandPreferences } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import { listAgents } from "./herdr/agent";
+import { agentTitle, listAgents } from "./herdr/agent";
 import { openHerdr } from "./herdr/launch";
 import { describeError } from "./herdr/errors";
 import { attentionCount, dominantStatus, groupByStatus, presentation } from "./herdr/status";
@@ -45,7 +45,7 @@ export default function Command() {
               <MenuBarExtra.Item
                 key={agent.paneId}
                 icon={{ source: presentation(agent.status).icon, tintColor: presentation(agent.status).color }}
-                title={agent.title}
+                title={agentTitle(agent)}
                 subtitle={agent.name ?? agent.kind}
                 onAction={() => focusAgentAndReveal(agent)}
               />

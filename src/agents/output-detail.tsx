@@ -1,5 +1,5 @@
 import { TerminalOutput } from "../components/terminal-output";
-import { readAgentOutput } from "../herdr/agent";
+import { agentTitle, readAgentOutput } from "../herdr/agent";
 import { presentation } from "../herdr/status";
 import { Agent } from "../herdr/types";
 
@@ -12,7 +12,7 @@ export function AgentOutput({ agent }: Props) {
 
   return (
     <TerminalOutput
-      navigationTitle={agent.title}
+      navigationTitle={agentTitle(agent)}
       target={agent.paneId}
       read={readAgentOutput}
       status={{ label: status.label, color: status.color }}

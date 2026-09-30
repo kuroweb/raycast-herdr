@@ -1,5 +1,6 @@
 import { Action, ActionPanel, Alert, confirmAlert, Icon, Keyboard, List, showToast, Toast } from "@raycast/api";
 import { Agent } from "../herdr/types";
+import { agentTitle } from "../herdr/agent";
 import { agentIcon, ENTITY_ICON, presentation } from "../herdr/status";
 import { shortenPath } from "../herdr/workspace";
 import { describeError } from "../herdr/errors";
@@ -9,6 +10,7 @@ import { AgentOutput } from "./output-detail";
 import { PromptForm } from "./prompt-form";
 import { RespondView, ResponseActionSections } from "./respond";
 import { RenameForm } from "./rename-form";
+import { TitleForm } from "./title-form";
 
 type Props = {
   agent: Agent;
@@ -17,10 +19,11 @@ type Props = {
 
 export function AgentListItem({ agent, onRefresh }: Props) {
   const status = presentation(agent.status);
+  const title = agentTitle(agent);
 
   async function close() {
     const confirmed = await confirmAlert({
-      title: `${agent.title} を閉じますか`,
+      title: `${title} を閉じますか`,
       message: "このpaneで動いているagentも終了します。",
       icon: Icon.Trash,
       primaryAction: { title: "閉じる", style: Alert.ActionStyle.Destructive },
@@ -39,9 +42,9 @@ export function AgentListItem({ agent, onRefresh }: Props) {
   return (
     <List.Item
       icon={agentIcon(agent.kind, status.color)}
-      title={agent.title}
+      title={title}
       subtitle={agent.cwd.length > 0 ? shortenPath(agent.cwd) : undefined}
-      keywords={[agent.paneId, agent.cwd, agent.kind, agent.name ?? ""]}
+      keywords={[agent.paneId, agent.cwd, agent.kind, agent.name ?? "", agent.title]}
       accessories={[
         ...(agent.focused ? [{ icon: Icon.Eye, tooltip: "フォーカス中" }] : []),
         { tag: { value: status.label, color: status.color } },
@@ -70,13 +73,13 @@ export function AgentListItem({ agent, onRefresh }: Props) {
               title="応答内容を見る"
               icon={Icon.Reply}
               shortcut={Keyboard.Shortcut.Common.ToggleQuickLook}
-              target={<RespondView target={agent.paneId} title={agent.title} />}
+              target={<RespondView target={agent.paneId} title={title} />}
             />
             <Action.Push
               title="プロンプトを送信"
               icon={ENTITY_ICON.agent}
               shortcut={{ modifiers: ["cmd"], key: "m" }}
-              target={<PromptForm target={agent.paneId} title={agent.title} cwd={agent.cwd} onSubmitted={onRefresh} />}
+              target={<PromptForm target={agent.paneId} title={title} cwd={agent.cwd} onSubmitted={onRefresh} />}
             />
             <Action.Push
               title="出力を見る"
@@ -85,9 +88,15 @@ export function AgentListItem({ agent, onRefresh }: Props) {
               target={<AgentOutput agent={agent} />}
             />
             <Action.Push
-              title="名前を変更"
-              icon={ENTITY_ICON.agent}
+              title="タイトルを変更"
+              icon={Icon.Pencil}
               shortcut={Keyboard.Shortcut.Common.Edit}
+              target={<TitleForm agent={agent} onRenamed={onRefresh} />}
+            />
+            <Action.Push
+              title="エージェント名を変更"
+              icon={ENTITY_ICON.agent}
+              shortcut={{ modifiers: ["cmd", "shift"], key: "e" }}
               target={<RenameForm agent={agent} onRenamed={onRefresh} />}
             />
           </ActionPanel.Section>

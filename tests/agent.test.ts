@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseAgentList, parseServerState } from "../src/herdr/agent";
+import { agentTitle, parseAgentList, parsePaneLabels, parseServerState } from "../src/herdr/agent";
 
 describe("parseAgentList", () => {
   it("agent list の応答を正規化する", () => {
@@ -28,6 +28,7 @@ describe("parseAgentList", () => {
         tabId: "wE:t1",
         workspaceId: "wE",
         name: undefined,
+        label: undefined,
         cwd: "/Users/u/project/sub",
         title: "実装中",
         focused: false,
@@ -61,5 +62,49 @@ describe("parseServerState", () => {
 
   it("それ以外はstopped", () => {
     expect(parseServerState("status: stopped\n")).toBe("stopped");
+  });
+});
+
+describe("parsePaneLabels", () => {
+  it("pane list から pane_id → label を取る", () => {
+    const labels = parsePaneLabels([
+      { pane_id: "wE:p1", label: " 実装 " },
+      { pane_id: "wE:p2" },
+      { label: "pane_idなし" },
+      "not a pane",
+    ]);
+
+    expect([...labels]).toEqual([["wE:p1", "実装"]]);
+  });
+
+  it("panesが配列でなければ空にする", () => {
+    expect(parsePaneLabels(undefined).size).toBe(0);
+  });
+});
+
+describe("parseAgentList with labels", () => {
+  it("paneのラベルをagentに載せる", () => {
+    const [agent] = parseAgentList(
+      { agents: [{ pane_id: "wE:p1", terminal_title_stripped: "実装中" }] },
+      new Map([["wE:p1", "レビュー担当"]]),
+    );
+
+    expect(agent.label).toBe("レビュー担当");
+    expect(agent.title).toBe("実装中");
+  });
+});
+
+describe("agentTitle", () => {
+  it("ラベルがあればラベルを出す", () => {
+    const [agent] = parseAgentList(
+      { agents: [{ pane_id: "wE:p1", terminal_title_stripped: "実装中" }] },
+      new Map([["wE:p1", "レビュー担当"]]),
+    );
+    expect(agentTitle(agent)).toBe("レビュー担当");
+  });
+
+  it("ラベルが無ければターミナルタイトルを出す", () => {
+    const [agent] = parseAgentList({ agents: [{ pane_id: "wE:p1", terminal_title_stripped: "実装中" }] });
+    expect(agentTitle(agent)).toBe("実装中");
   });
 });

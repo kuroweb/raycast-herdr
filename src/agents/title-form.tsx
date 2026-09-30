@@ -1,20 +1,23 @@
 import { useState } from "react";
 import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@raycast/api";
-import { agentTitle, clearAgentName, renameAgent } from "../herdr/agent";
+import { agentTitle } from "../herdr/agent";
+import { clearPaneLabel, renamePane } from "../herdr/layout";
 import { describeError } from "../herdr/errors";
 import { Agent } from "../herdr/types";
-
-// herdr の live agent name 制約。手前で弾いてCLI往復を省く。
-const NAME_PATTERN = /^[a-z][a-z0-9_-]{0,31}$/;
 
 type Props = {
   agent: Agent;
   onRenamed: () => void;
 };
 
-export function RenameForm({ agent, onRenamed }: Props) {
+/**
+ * 一覧に出るタイトルを編集する。
+ * 素のタイトルはagent側が書き換えるターミナルタイトルなので、上書きにはpaneのラベルを使う。
+ * 解除するとターミナルタイトルの表示に戻る。
+ */
+export function TitleForm({ agent, onRenamed }: Props) {
   const { pop } = useNavigation();
-  const [name, setName] = useState(agent.name ?? "");
+  const [label, setLabel] = useState(agent.label ?? "");
   const [error, setError] = useState<string | undefined>();
 
   async function run(action: () => Promise<void>, successTitle: string) {
@@ -34,38 +37,39 @@ export function RenameForm({ agent, onRenamed }: Props) {
 
   return (
     <Form
+      navigationTitle={agentTitle(agent)}
       actions={
         <ActionPanel>
           <Action.SubmitForm
-            title="名前を設定"
-            shortcut={{ modifiers: ["cmd"], key: "return" }}
+            title="タイトルを設定"
             icon={Icon.Pencil}
+            shortcut={{ modifiers: ["cmd"], key: "return" }}
             onSubmit={() => {
-              if (!NAME_PATTERN.test(name)) {
-                setError("英小文字で始まり、英小文字・数字・- _ のみ、32文字以内");
+              if (label.trim().length === 0) {
+                setError("タイトルを入力してください");
                 return;
               }
-              return run(() => renameAgent(agent.paneId, name), "名前を変更しました");
+              return run(() => renamePane(agent.paneId, label.trim()), "タイトルを変更しました");
             }}
           />
           <Action
-            title="名前を解除"
+            title="タイトルを解除"
             icon={Icon.XMarkCircle}
-            onAction={() => run(() => clearAgentName(agent.paneId), "名前を解除しました")}
+            onAction={() => run(() => clearPaneLabel(agent.paneId), "タイトルを解除しました")}
           />
         </ActionPanel>
       }
     >
-      <Form.Description title="Agent" text={agentTitle(agent)} />
+      <Form.Description title="ターミナルタイトル" text={agent.title} />
       <Form.Description title="Directory" text={agent.cwd} />
       <Form.TextField
-        id="name"
-        title="Agent名"
-        placeholder="reviewer"
-        value={name}
+        id="label"
+        title="タイトル"
+        placeholder={agent.title}
+        value={label}
         error={error}
         onChange={(value) => {
-          setName(value);
+          setLabel(value);
           setError(undefined);
         }}
       />
