@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Action, ActionPanel, Detail, Form, Icon, Keyboard, showToast, Toast, useNavigation } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import { readAgentDetection, sendAgentKeys } from "../herdr/agent";
+import { clearAgentInput, readAgentDetection, sendAgentKeys } from "../herdr/agent";
 import { sendPaneText } from "../herdr/layout";
 import { describeError } from "../herdr/errors";
 
@@ -135,6 +135,7 @@ function AnswerForm({ target, onSent }: { target: string; onSent: () => void }) 
     try {
       await sendPaneText(target, text);
       await sendAgentKeys(target, ["enter"]);
+      await clearAgentInput(target, text);
       toast.style = Toast.Style.Success;
       toast.title = "送信しました";
       onSent();
