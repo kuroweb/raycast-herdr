@@ -74,7 +74,7 @@ export function PaneItem({ pane, tabLabel, onRefresh, extraSections }: Props) {
             {pane.agent ? (
               <Action.Push
                 title="応答する"
-                icon={Icon.Reply}
+                icon={Icon.SpeechBubble}
                 shortcut={Keyboard.Shortcut.Common.Open}
                 target={<RespondView target={pane.id} title={title} />}
               />
@@ -82,7 +82,7 @@ export function PaneItem({ pane, tabLabel, onRefresh, extraSections }: Props) {
             {pane.agent ? (
               <Action.Push
                 title="プロンプトを送信"
-                icon={ENTITY_ICON.agent}
+                icon={Icon.TextInput}
                 shortcut={{ modifiers: ["cmd"], key: "m" }}
                 target={<PromptForm target={pane.id} title={title} cwd={pane.cwd} onSubmitted={onRefresh} />}
               />

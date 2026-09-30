@@ -70,13 +70,13 @@ export function AgentListItem({ agent, onRefresh }: Props) {
             />
             <Action.Push
               title="応答内容を見る"
-              icon={Icon.Reply}
+              icon={Icon.SpeechBubble}
               shortcut={Keyboard.Shortcut.Common.Open}
               target={<RespondView target={agent.paneId} title={title} />}
             />
             <Action.Push
               title="プロンプトを送信"
-              icon={ENTITY_ICON.agent}
+              icon={Icon.TextInput}
               shortcut={{ modifiers: ["cmd"], key: "m" }}
               target={<PromptForm target={agent.paneId} title={title} cwd={agent.cwd} onSubmitted={onRefresh} />}
             />
@@ -88,7 +88,7 @@ export function AgentListItem({ agent, onRefresh }: Props) {
             />
             <Action.Push
               title="エージェント名を変更"
-              icon={ENTITY_ICON.agent}
+              icon={Icon.Tag}
               shortcut={{ modifiers: ["cmd", "shift"], key: "e" }}
               target={<RenameForm agent={agent} onRenamed={onRefresh} />}
             />

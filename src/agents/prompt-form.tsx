@@ -43,7 +43,7 @@ export function PromptForm({ target, title, cwd, onSubmitted }: Props) {
           <Action.SubmitForm
             shortcut={{ modifiers: ["cmd"], key: "return" }}
             title="送信"
-            icon={Icon.Message}
+            icon={Icon.TextInput}
             onSubmit={submit}
           />
         </ActionPanel>

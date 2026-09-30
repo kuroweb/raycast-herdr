@@ -39,7 +39,7 @@ export function RenameForm({ agent, onRenamed }: Props) {
           <Action.SubmitForm
             title="名前を設定"
             shortcut={{ modifiers: ["cmd"], key: "return" }}
-            icon={Icon.Pencil}
+            icon={Icon.Tag}
             onSubmit={() => {
               if (!NAME_PATTERN.test(name)) {
                 setError("英小文字で始まり、英小文字・数字・- _ のみ、32文字以内");
