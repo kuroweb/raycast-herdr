@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearStrokeCount, parseAgentList, parseServerState } from "../src/herdr/agent";
+import { parseAgentList, parseServerState } from "../src/herdr/agent";
 
 describe("parseAgentList", () => {
   it("agent list の応答を正規化する", () => {
@@ -61,15 +61,5 @@ describe("parseServerState", () => {
 
   it("それ以外はstopped", () => {
     expect(parseServerState("status: stopped\n")).toBe("stopped");
-  });
-});
-
-describe("clearStrokeCount", () => {
-  it("1行なら消す1打と空打ちの2打", () => {
-    expect(clearStrokeCount("thx")).toBe(2);
-  });
-
-  it("行数が増えるほど打鍵数も増える", () => {
-    expect(clearStrokeCount("1行目\n2行目\n3行目")).toBe(6);
   });
 });

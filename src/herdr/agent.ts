@@ -74,28 +74,6 @@ export async function focusAgent(target: string): Promise<void> {
 export async function promptAgent(target: string, text: string): Promise<void> {
   // --wait を付けない: Raycast側でagentの応答完了まで待つとUIが固まる。
   await runJson(["agent", "prompt", target, text]);
-  await clearAgentInput(target, text);
-}
-
-/**
- * 送信後にagentの入力欄へ残った本文を消す。
- * cursor-agentは送信が成立しても入力欄を空にしないことがあり、残った本文は次の送信時に
- * 先頭へ連結されて別の指示になってしまう。送信の成否とは切り離したいので失敗は握り潰す。
- */
-export async function clearAgentInput(target: string, sentText: string): Promise<void> {
-  try {
-    await sendAgentKeys(target, new Array(clearStrokeCount(sentText)).fill("ctrl+u"));
-  } catch {
-    // 入力欄の後始末は送信のついでなので、ここでの失敗を送信の失敗として扱わない。
-  }
-}
-
-/**
- * ctrl+u は論理行単位でしか消えず、行を消した後に残る空行を畳むのにもう一打要る。
- * 空の入力欄へのctrl+uは何も起きないので、多めに打って消し残しを無くす。
- */
-export function clearStrokeCount(sentText: string): number {
-  return sentText.split("\n").length * 2;
 }
 
 export async function renameAgent(target: string, name: string): Promise<void> {
