@@ -12,8 +12,6 @@ export type Agent = {
   workspaceId: string;
   /** rename で付けた live agent name。未設定なら undefined。 */
   name?: string;
-  /** paneに付けた表示ラベル。タイトルの上書きに使う。未設定なら undefined。 */
-  label?: string;
   cwd: string;
   /** ANSI装飾とstatus記号を除いたターミナルタイトル。 */
   title: string;

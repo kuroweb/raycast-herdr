@@ -17,57 +17,27 @@ type RawAgent = {
 };
 
 export async function listAgents(): Promise<Agent[]> {
-  // agent list は pane のラベルを返さないので、pane list から引いて合わせる。
-  const [result, labels] = await Promise.all([runJson<{ agents?: unknown }>(["agent", "list"]), fetchPaneLabels()]);
-  return parseAgentList(result, labels);
+  const result = await runJson<{ agents?: unknown }>(["agent", "list"]);
+  return parseAgentList(result);
 }
 
 /** agent list の result を Agent[] に正規化する。CLIの型揺れをUIに漏らさないための境界。 */
-export function parseAgentList(result: { agents?: unknown }, labels: Map<string, string> = new Map()): Agent[] {
+export function parseAgentList(result: { agents?: unknown }): Agent[] {
   if (!Array.isArray(result.agents)) {
     return [];
   }
   return result.agents
     .filter(isRecord)
-    .map((raw) => toAgent(raw, labels))
+    .map((raw) => toAgent(raw))
     .filter((agent): agent is Agent => agent !== undefined);
 }
 
-/** ラベルは表示用の飾りなので、取れなくてもagent一覧は出す。 */
-async function fetchPaneLabels(): Promise<Map<string, string>> {
-  try {
-    const result = await runJson<{ panes?: unknown }>(["pane", "list"]);
-    return parsePaneLabels(result.panes);
-  } catch {
-    return new Map();
-  }
-}
-
-/** pane list から pane_id → label を取る。ラベル未設定のpaneは入れない。 */
-export function parsePaneLabels(source: unknown): Map<string, string> {
-  if (!Array.isArray(source)) {
-    return new Map();
-  }
-  const labels = new Map<string, string>();
-  for (const raw of source) {
-    if (!isRecord(raw)) {
-      continue;
-    }
-    const paneId = asString((raw as { pane_id?: unknown }).pane_id);
-    const label = asString((raw as { label?: unknown }).label)?.trim();
-    if (paneId && label) {
-      labels.set(paneId, label);
-    }
-  }
-  return labels;
-}
-
-/** 一覧やナビゲーションの見出し。ラベルを付けたらそれを最優先で出す。 */
+/** 一覧やナビゲーションの見出し。agent が報告するターミナルタイトル（正規化済み）。 */
 export function agentTitle(agent: Agent): string {
-  return agent.label ?? agent.title;
+  return agent.title;
 }
 
-function toAgent(raw: RawAgent, labels: Map<string, string>): Agent | undefined {
+function toAgent(raw: RawAgent): Agent | undefined {
   const paneId = asString(raw.pane_id);
   if (!paneId) {
     // pane_id は agent commands の target なので、無いものは操作できず表示しない。
@@ -82,7 +52,6 @@ function toAgent(raw: RawAgent, labels: Map<string, string>): Agent | undefined 
     tabId: asString(raw.tab_id) ?? "",
     workspaceId: asString(raw.workspace_id) ?? "",
     name: asString(raw.agent_name) ?? asString(raw.name),
-    label: labels.get(paneId),
     cwd,
     title: title.trim().length > 0 ? title.trim() : paneId,
     focused: raw.focused === true,

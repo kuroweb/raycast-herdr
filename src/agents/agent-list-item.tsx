@@ -9,7 +9,6 @@ import { closePane } from "../herdr/layout";
 import { PromptForm } from "./prompt-form";
 import { RespondView, ResponseActionSections } from "./respond";
 import { RenameForm } from "./rename-form";
-import { TitleForm } from "./title-form";
 
 type Props = {
   agent: Agent;
@@ -79,12 +78,6 @@ export function AgentListItem({ agent, onRefresh }: Props) {
               icon={Icon.TextInput}
               shortcut={{ modifiers: ["cmd"], key: "m" }}
               target={<PromptForm target={agent.paneId} title={title} cwd={agent.cwd} onSubmitted={onRefresh} />}
-            />
-            <Action.Push
-              title="タイトルを変更"
-              icon={Icon.Pencil}
-              shortcut={Keyboard.Shortcut.Common.Edit}
-              target={<TitleForm agent={agent} onRenamed={onRefresh} />}
             />
             <Action.Push
               title="エージェント名を変更"
