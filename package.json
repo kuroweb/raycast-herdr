@@ -25,6 +25,26 @@
         "claude",
         "terminal",
         "status"
+      ],
+      "preferences": [
+        {
+          "name": "agentGrouping",
+          "title": "Grouping",
+          "description": "agentをまとめる単位。",
+          "type": "dropdown",
+          "required": false,
+          "default": "space",
+          "data": [
+            {
+              "title": "space",
+              "value": "space"
+            },
+            {
+              "title": "status",
+              "value": "status"
+            }
+          ]
+        }
       ]
     },
     {

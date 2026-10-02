@@ -2,15 +2,14 @@ import { useEffect } from "react";
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
 import { AgentListItem } from "./agents/agent-list-item";
-import { listAgents } from "./herdr/agent";
+import { listAgentGroups } from "./herdr/panel";
 import { describeError, isUnavailable } from "./herdr/errors";
-import { sortAgents } from "./herdr/status";
 import { openHerdr } from "./herdr/launch";
 
 const REFRESH_INTERVAL_MS = 2_000;
 
 export default function Command() {
-  const { data, isLoading, error, revalidate } = useCachedPromise(listAgents, [], { initialData: [] });
+  const { data, isLoading, error, revalidate } = useCachedPromise(listAgentGroups, [], { initialData: [] });
 
   // 状態は外部プロセス側で変わるので、ビューを開いている間はポーリングで追従する。
   useEffect(() => {
@@ -18,7 +17,7 @@ export default function Command() {
     return () => clearInterval(timer);
   }, [revalidate]);
 
-  const agents = sortAgents(data ?? []);
+  const groups = data ?? [];
 
   return (
     <List isLoading={isLoading} searchBarPlaceholder="タイトル・ディレクトリ・pane IDで絞り込む">
@@ -47,8 +46,12 @@ export default function Command() {
               </ActionPanel>
             }
           />
-          {agents.map((agent) => (
-            <AgentListItem key={agent.paneId} agent={agent} onRefresh={revalidate} />
+          {groups.map((group) => (
+            <List.Section key={group.key} title={group.title} subtitle={group.subtitle}>
+              {group.agents.map((agent) => (
+                <AgentListItem key={agent.paneId} agent={agent} onRefresh={revalidate} />
+              ))}
+            </List.Section>
           ))}
         </>
       )}
