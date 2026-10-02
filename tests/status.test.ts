@@ -110,7 +110,7 @@ describe("agentIcon の網羅", () => {
   it("既知の種別はすべて共通アイコン以外に解決する", () => {
     const fallback = kinds.filter((kind) => {
       const icon = agentIcon(kind, Color.Orange);
-      return "source" in icon && icon.source === ENTITY_ICON.agent;
+      return typeof icon === "object" && "source" in icon && icon.source === ENTITY_ICON.agent;
     });
     expect(fallback).toEqual([]);
   });
