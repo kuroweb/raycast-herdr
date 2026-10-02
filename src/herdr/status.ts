@@ -84,6 +84,36 @@ export function sortAgents(agents: Agent[]): Agent[] {
   });
 }
 
+/** Space単位の並びに必要な表示順。workspace / tab のIDをHerdrの表示順どおりに並べたもの。 */
+export type PanelOrder = { workspaces: string[]; tabs: string[] };
+
+/**
+ * workspace → tab → pane の表示順に並べる。
+ * Herdrのサイドバーと同じ並びにして、TUIと一覧で位置が食い違わないようにする。
+ */
+export function sortAgentsBySpaces(agents: Agent[], order: PanelOrder): Agent[] {
+  const workspaceRank = rankOf(order.workspaces);
+  const tabRank = rankOf(order.tabs);
+  return [...agents].sort((a, b) => {
+    const byWorkspace = workspaceRank(a.workspaceId) - workspaceRank(b.workspaceId);
+    if (byWorkspace !== 0) {
+      return byWorkspace;
+    }
+    const byTab = tabRank(a.tabId) - tabRank(b.tabId);
+    if (byTab !== 0) {
+      return byTab;
+    }
+    // 同じtab内はpane ID順。分割した順に並ぶので、画面上の並びに近い。
+    return a.paneId.localeCompare(b.paneId, undefined, { numeric: true });
+  });
+}
+
+/** 表示順に無いIDは末尾へ。snapshot取得後にworkspaceが消えても落とさないため。 */
+function rankOf(ids: string[]): (id: string) => number {
+  const ranks = new Map(ids.map((id, index) => [id, index]));
+  return (id) => ranks.get(id) ?? Number.MAX_SAFE_INTEGER;
+}
+
 export function attentionCount(agents: Agent[]): number {
   return agents.filter((agent) => presentation(agent.status).needsAttention).length;
 }

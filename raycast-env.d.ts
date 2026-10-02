@@ -19,7 +19,10 @@ declare type Preferences = ExtensionPreferences
 
 declare namespace Preferences {
   /** Preferences accessible in the `agents` command */
-  export type Agents = ExtensionPreferences & {}
+  export type Agents = ExtensionPreferences & {
+  /** Grouping - agentをまとめる単位。 */
+  "agentGrouping": "space" | "status"
+}
   /** Preferences accessible in the `spaces` command */
   export type Spaces = ExtensionPreferences & {}
   /** Preferences accessible in the `agent-status` command */
