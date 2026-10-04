@@ -50,4 +50,5 @@ jobs:
             - `判定: ⚠️ 要確認` … 人が判断すべき懸念あり（理由を列挙）
             - `判定: ❌ 要修正` … マージ前に直すべき問題あり（該当箇所を列挙）
           claude_args: |
+            --model sonnet
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
